@@ -3,13 +3,15 @@ package ru.javaops.restaurantvoting.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(
         name = "dish",
         uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id", "name"}, name = "uk_restaurant_dish"))
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class Dish extends NamedEntity {
 
     @Column(name = "price", nullable = false)

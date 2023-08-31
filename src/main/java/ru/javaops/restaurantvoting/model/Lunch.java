@@ -3,6 +3,8 @@ package ru.javaops.restaurantvoting.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,8 +15,8 @@ import java.util.Set;
 @Table(
         name = "lunch",
         uniqueConstraints = @UniqueConstraint(columnNames = {"date", "restaurant_id"}, name = "uk_date_restaurant"))
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class Lunch extends BaseEntity {
 
     @Column(name = "date", nullable = false)
