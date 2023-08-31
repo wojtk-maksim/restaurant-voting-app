@@ -1,4 +1,4 @@
-package ru.javaops.restaurantvoting.service;
+package ru.javaops.restaurantvoting;
 
 import ru.javaops.restaurantvoting.model.User;
 
