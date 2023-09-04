@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 
 @Component
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class JsonUtil {
         }
     }
 
-    public <T> List<T> readValues(String json, Class<T[]> clazz) {
+    public <T> Collection<T> readValues(String json, Class<T[]> clazz) {
         try {
             return Arrays.asList(mapper.readValue(json, clazz));
         } catch (IOException e) {

@@ -2,7 +2,6 @@ package ru.javaops.restaurantvoting.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @MappedSuperclass
@@ -23,7 +22,7 @@ public abstract class BaseEntity {
         if (!(o instanceof BaseEntity that)) {
             return false;
         }
-        return id != null && id.equals(that.id);
+        return id != null && id.equals(that.getId());
     }
 
     @Override

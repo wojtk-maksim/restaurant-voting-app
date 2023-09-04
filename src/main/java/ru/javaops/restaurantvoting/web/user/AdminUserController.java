@@ -16,7 +16,7 @@ public class AdminUserController {
 
     public static final String ADMIN_USER_URL = "/api/admin/users";
 
-    UserService userService;
+    private UserService userService;
 
     @GetMapping
     public List<User> getAll() {

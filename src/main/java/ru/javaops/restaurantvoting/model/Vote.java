@@ -1,8 +1,9 @@
 package ru.javaops.restaurantvoting.model;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -12,16 +13,42 @@ import java.time.LocalDate;
 @Table(
         name = "vote",
         uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"}, name = "uk_date_user"))
+@IdClass(Vote.VoteId.class)
 @Getter
 @Setter
+@NoArgsConstructor
 public class Vote {
 
-    @EmbeddedId
-    private VoteId id;
+    @Id
+    @Column(name = "date", nullable = false)
+    @Temporal(TemporalType.DATE)
+    private LocalDate date;
+
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            foreignKey = @ForeignKey(
+                    name = "fk_user_vote",
+                    foreignKeyDefinition = "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL"
+            ))
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lunch_id", nullable = false)
+    @JoinColumn(
+            name = "lunch_id",
+            nullable = false,
+            foreignKey = @ForeignKey(
+                    name = "fk_lunch_vote",
+                    foreignKeyDefinition = "FOREIGN KEY(lunch_id) REFERENCES Lunch(id) ON DELETE CASCADE"
+            ))
     private Lunch lunch;
+
+    public Vote(LocalDate date, User user, Lunch lunch) {
+        this.date = date;
+        this.user = user;
+        this.lunch = lunch;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -31,24 +58,21 @@ public class Vote {
         if (!(o instanceof Vote that)) {
             return false;
         }
-        return that.id.equals(id);
+        return date != null && date.equals(that.date) &&
+                user != null && user.equals(that.user);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return (date == null ? 0 : date.hashCode()) + (user == null ? 0 : user.hashCode());
     }
 
-    @Embeddable
-    @EqualsAndHashCode
-    private static class VoteId implements Serializable {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VoteId implements Serializable {
 
-        @Column(name = "date", nullable = false)
-        @Temporal(TemporalType.DATE)
         private LocalDate date;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "user_id", nullable = false)
         private User user;
     }
 }

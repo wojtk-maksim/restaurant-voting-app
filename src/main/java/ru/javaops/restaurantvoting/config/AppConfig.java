@@ -16,4 +16,9 @@ public class AppConfig {
         log.info("Start H2 TCP server");
         return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
     }
+
+    /*@Autowired
+    void configureAndStoreObjectMapper(ObjectMapper objectMapper) {
+        objectMapper.registerModule(new Hibernate6Module());
+    }*/
 }

@@ -2,8 +2,7 @@ package ru.javaops.restaurantvoting.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import ru.javaops.restaurantvoting.AbstractTest;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.model.User;
 
@@ -13,9 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.javaops.restaurantvoting.UserTestData.*;
 
-@SpringBootTest
-@Transactional
-public class UserServiceTest {
+public class UserServiceTest extends AbstractTest {
 
     @Autowired
     UserService userService;

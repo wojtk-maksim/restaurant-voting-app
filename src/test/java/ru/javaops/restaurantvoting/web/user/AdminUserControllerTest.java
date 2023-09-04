@@ -2,15 +2,14 @@ package ru.javaops.restaurantvoting.web.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import ru.javaops.restaurantvoting.model.User;
+import ru.javaops.restaurantvoting.model.Vote;
 import ru.javaops.restaurantvoting.repository.UserRepository;
-import ru.javaops.restaurantvoting.util.JsonUtil;
+import ru.javaops.restaurantvoting.repository.VoteRepository;
+import ru.javaops.restaurantvoting.web.AbstractControllerTest;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,19 +22,13 @@ import static ru.javaops.restaurantvoting.TestUtil.extractJson;
 import static ru.javaops.restaurantvoting.UserTestData.*;
 import static ru.javaops.restaurantvoting.web.user.AdminUserController.ADMIN_USER_URL;
 
-@SpringBootTest
-@Transactional
-@AutoConfigureMockMvc
-public class AdminUserControllerTest {
-
-    @Autowired
-    MockMvc mockMvc;
+public class AdminUserControllerTest extends AbstractControllerTest {
 
     @Autowired
     UserRepository userRepository;
 
     @Autowired
-    JsonUtil jsonUtil;
+    VoteRepository voteRepository;
 
     @Test
     void getAll() throws Exception {
@@ -91,5 +84,7 @@ public class AdminUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
         assertFalse(userRepository.findById(USER_ID).isPresent());
+
+        voteRepository.findById(new Vote.VoteId(LocalDate.of(2020, 9, 1), user));
     }
 }

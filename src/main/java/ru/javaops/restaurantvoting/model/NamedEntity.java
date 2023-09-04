@@ -2,12 +2,12 @@ package ru.javaops.restaurantvoting.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 @MappedSuperclass
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public abstract class NamedEntity extends BaseEntity {
 
     @Column(name = "name", nullable = false)
