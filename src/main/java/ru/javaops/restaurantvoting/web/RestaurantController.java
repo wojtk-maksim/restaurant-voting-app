@@ -1,9 +1,10 @@
-package ru.javaops.restaurantvoting.web.user;
+package ru.javaops.restaurantvoting.web;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.model.Restaurant;
@@ -33,7 +34,7 @@ public class RestaurantController {
         return restaurantRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
-    //TODO: add method security for admin
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Restaurant addNew(@RequestBody Restaurant restaurant) {
         log.info("add new {}", restaurant);
@@ -43,7 +44,7 @@ public class RestaurantController {
         return restaurantRepository.save(restaurant);
     }
 
-    //TODO: add method security for admin
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void update(@RequestBody Restaurant restaurant, @PathVariable int id) {
         log.info("update {} to {}", id, restaurant.getName());
@@ -52,7 +53,7 @@ public class RestaurantController {
         }
     }
 
-    //TODO: add method security for admin
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
         log.info("delete {}", id);

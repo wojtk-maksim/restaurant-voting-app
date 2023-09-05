@@ -2,6 +2,7 @@ package ru.javaops.restaurantvoting.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.model.Restaurant;
@@ -14,7 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.RestaurantTestData.*;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
-import static ru.javaops.restaurantvoting.web.user.RestaurantController.RESTAURANT_URL;
+import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
+import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.web.RestaurantController.RESTAURANT_URL;
 
 public class RestaurantControllerTest extends AbstractControllerTest {
 
@@ -22,6 +25,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     RestaurantRepository restaurantRepository;
 
     @Test
+    @WithUserDetails(USER_EMAIL)
     void getAll() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(RESTAURANT_URL))
                 .andDo(print())
@@ -31,6 +35,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(USER_EMAIL)
     void get() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(RESTAURANT_URL + "/" + BURGER_KING_ID))
                 .andDo(print())
@@ -40,6 +45,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void addNew() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(RESTAURANT_URL)
                         .contentType(APPLICATION_JSON)
@@ -56,6 +62,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(RESTAURANT_URL + "/" + BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
@@ -67,6 +74,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void delete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(RESTAURANT_URL + "/" + BURGER_KING_ID))
                 .andDo(print())

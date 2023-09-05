@@ -2,6 +2,7 @@ package ru.javaops.restaurantvoting.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.repository.LunchRepository;
@@ -17,7 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.javaops.restaurantvoting.LunchTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
-import static ru.javaops.restaurantvoting.web.user.LunchController.LUNCH_URL;
+import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
+import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.web.LunchController.LUNCH_URL;
 
 public class LunchControllerTest extends AbstractControllerTest {
 
@@ -28,6 +31,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     private LunchService lunchService;
 
     @Test
+    @WithUserDetails(USER_EMAIL)
     void getFromRestaurant() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(LUNCH_URL, BURGER_KING_ID, DATE_AS_STRING))
                 .andDo(print())
@@ -37,6 +41,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void add() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(LUNCH_URL, BURGER_KING_ID, NEW_DATE_AS_STRING)
                         .contentType(APPLICATION_JSON)
@@ -47,6 +52,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(LUNCH_URL, BURGER_KING_ID, DATE)
                         .contentType(APPLICATION_JSON)
@@ -57,6 +63,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void delete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(LUNCH_URL, BURGER_KING_ID, DATE))
                 .andDo(print())

@@ -13,6 +13,7 @@ public class UserTestData {
     public static final int ADMIN_ID = 2;
 
     public static final String USER_EMAIL = "user@yandex.ru";
+    public static final String ADMIN_EMAIL = "admin@gmail.com";
 
     public static final User user = new User(USER_ID, "user", USER_EMAIL, "user", EnumSet.of(USER));
     public static final User admin = new User(ADMIN_ID, "admin", "admin@gmail.com", "admin", EnumSet.of(USER, ADMIN));

@@ -1,6 +1,7 @@
 package ru.javaops.restaurantvoting.web;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javaops.restaurantvoting.to.LunchTo;
 
@@ -13,11 +14,14 @@ import static ru.javaops.restaurantvoting.LunchTestData.DATE_AS_STRING;
 import static ru.javaops.restaurantvoting.LunchTestData.lunches;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
-import static ru.javaops.restaurantvoting.web.user.VoteController.VOTE_URL;
+import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
+import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.web.VoteController.VOTE_URL;
 
 public class VoteControllerTest extends AbstractControllerTest {
 
     @Test
+    @WithUserDetails(USER_EMAIL)
     void getAll() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(VOTE_URL, DATE_AS_STRING))
                 .andDo(print())
@@ -27,6 +31,7 @@ public class VoteControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @WithUserDetails(ADMIN_EMAIL)
     void vote() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(VOTE_URL, DATE_AS_STRING)
                         .contentType(APPLICATION_JSON)

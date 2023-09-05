@@ -1,8 +1,9 @@
-package ru.javaops.restaurantvoting.web.user;
+package ru.javaops.restaurantvoting.web;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.repository.DishRepository;
@@ -36,21 +37,21 @@ public class DishController {
         return dishRepository.getRestaurantDishTo(restaurantId, id).orElseThrow(NotFoundException::new);
     }
 
-    //TODO: add method security
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
     public RestaurantDishTo addNew(@PathVariable int restaurantId, @RequestBody SimpleDishTo simpleDishTo) {
         log.info("add new {} for restaurant {}", simpleDishTo, restaurantId);
         return dishService.add(simpleDishTo, restaurantId);
     }
 
-    //TODO: add method security
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public void update(@PathVariable int restaurantId, @PathVariable int id, @RequestBody SimpleDishTo simpleDishTo) {
         log.info("update {} for {} in restaurant {}", id, simpleDishTo, restaurantId);
         dishService.update(restaurantId, id, simpleDishTo);
     }
 
-    //TODO: add method security
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int restaurantId, @PathVariable int id) {
         log.info("delete {} from restaurant {}", id, restaurantId);

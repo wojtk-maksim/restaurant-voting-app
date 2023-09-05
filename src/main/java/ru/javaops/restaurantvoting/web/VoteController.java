@@ -1,9 +1,10 @@
-package ru.javaops.restaurantvoting.web.user;
+package ru.javaops.restaurantvoting.web;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.javaops.restaurantvoting.repository.LunchRepository;
 import ru.javaops.restaurantvoting.service.VoteService;
@@ -13,8 +14,6 @@ import ru.javaops.restaurantvoting.to.SimpleDishTo;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static ru.javaops.restaurantvoting.web.user.SecurityUtil.authId;
 
 @RestController
 @RequestMapping(value = VoteController.VOTE_URL, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,8 +41,8 @@ public class VoteController {
     }
 
     @PostMapping
-    public void vote(@PathVariable LocalDate date, @RequestBody int restaurantId) {
+    public void vote(@PathVariable LocalDate date, @AuthenticationPrincipal AuthUser authUser, @RequestBody int restaurantId) {
         log.info("vote on {} for {} ", restaurantId, date);
-        voteService.vote(date, authId(), restaurantId);
+        voteService.vote(date, authUser.getUser(), restaurantId);
     }
 }
