@@ -5,21 +5,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javaops.restaurantvoting.error.NotFoundException;
-import ru.javaops.restaurantvoting.model.Dish;
 import ru.javaops.restaurantvoting.repository.DishRepository;
 import ru.javaops.restaurantvoting.to.RestaurantDishTo;
 import ru.javaops.restaurantvoting.to.SimpleDishTo;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.DishTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
-import static ru.javaops.restaurantvoting.TestUtil.extractJson;
+import static ru.javaops.restaurantvoting.TestUtil.*;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.DishController.DISH_URL;
 
 public class DishControllerTest extends AbstractControllerTest {
@@ -34,7 +35,7 @@ public class DishControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertIterableEquals(burgerKingDishes, jsonUtil.readValues(extractJson(result), RestaurantDishTo[].class)));
+                .andExpect(result -> matches(parseObjects(result, RestaurantDishTo[].class), burgerKingDishes));
     }
 
     @Test
@@ -44,7 +45,7 @@ public class DishControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertEquals(burger, jsonUtil.readValue(extractJson(result), Dish.class)));
+                .andExpect(result -> matches(parseObject(result, RestaurantDishTo.class), burgerRestaurantTo));
     }
 
     @Test
@@ -52,15 +53,11 @@ public class DishControllerTest extends AbstractControllerTest {
     void addNewToRestaurant() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(DISH_URL, BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(getNew())))
+                        .content(writeValue(getNew())))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> {
-                    RestaurantDishTo created = jsonUtil.readValue(extractJson(result), RestaurantDishTo.class);
-                    RestaurantDishTo newDish = new RestaurantDishTo(created.id(), getNew().name(), getNew().price());
-                    assertEquals(newDish, created);
-                });
+                .andExpect(result -> matches(parseObject(result, RestaurantDishTo.class), newlyAddedDish, "id"));
     }
 
     @Test
@@ -68,7 +65,7 @@ public class DishControllerTest extends AbstractControllerTest {
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(DISH_URL + "/" + BURGER_ID, BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(getUpdated())))
+                        .content(writeValue(updatedDish)))
                 .andDo(print())
                 .andExpect(status().isOk());
         RestaurantDishTo updated = dishRepository.getRestaurantDishTo(BURGER_KING_ID, BURGER_ID).orElseThrow(NotFoundException::new);

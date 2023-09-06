@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,19 +26,21 @@ import ru.javaops.restaurantvoting.web.AuthUser;
 @AllArgsConstructor
 public class SecurityConfig {
 
+    public static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+
     private UserRepository userRepository;
 
     @Bean
     PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        return PASSWORD_ENCODER;
     }
 
     @Bean
     UserDetailsService userDetailsService() {
         return email -> {
             log.debug("authenticating {}", email);
-            User user = userRepository.findByEmailIgnoreCase(email).
-                    orElseThrow(() -> new UsernameNotFoundException("User '" + email + "' not found"));
+            User user = userRepository.getByEmail(email.toLowerCase())
+                    .orElseThrow(() -> new UsernameNotFoundException("User '" + email + "' not found"));
             return new AuthUser(user);
         };
     }
@@ -47,6 +50,7 @@ public class SecurityConfig {
         httpSecurity.securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/api/profile").anonymous()
                         .requestMatchers("/api/**").authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

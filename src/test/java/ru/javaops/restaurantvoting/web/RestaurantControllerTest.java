@@ -17,6 +17,7 @@ import static ru.javaops.restaurantvoting.RestaurantTestData.*;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.util.JsonUtil.*;
 import static ru.javaops.restaurantvoting.web.RestaurantController.RESTAURANT_URL;
 
 public class RestaurantControllerTest extends AbstractControllerTest {
@@ -31,7 +32,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertIterableEquals(restaurants, jsonUtil.readValues(extractJson(result), Restaurant[].class)));
+                .andExpect(result -> assertIterableEquals(restaurants, readValues(extractJson(result), Restaurant[].class)));
     }
 
     @Test
@@ -41,7 +42,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertEquals(burgerKing, jsonUtil.readValue(extractJson(result), Restaurant.class)));
+                .andExpect(result -> assertEquals(burgerKing, readValue(extractJson(result), Restaurant.class)));
     }
 
     @Test
@@ -49,12 +50,12 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     void addNew() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(RESTAURANT_URL)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(getNew())))
+                        .content(writeValue(getNew())))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
                 .andExpect(result -> {
-                    Restaurant added = jsonUtil.readValue(extractJson(result), Restaurant.class);
+                    Restaurant added = readValue(extractJson(result), Restaurant.class);
                     Restaurant newRestaurant = getNew();
                     newRestaurant.setId(added.getId());
                     assertEquals(newRestaurant, added);
@@ -66,7 +67,7 @@ public class RestaurantControllerTest extends AbstractControllerTest {
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(RESTAURANT_URL + "/" + BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(getUpdated())))
+                        .content(writeValue(getUpdated())))
                 .andDo(print())
                 .andExpect(status().isOk());
         Restaurant restaurant = restaurantRepository.findById(BURGER_KING_ID).orElseThrow(NotFoundException::new);

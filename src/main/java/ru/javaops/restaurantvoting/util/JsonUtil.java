@@ -2,20 +2,20 @@ package ru.javaops.restaurantvoting.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-@Component
-@AllArgsConstructor
 public class JsonUtil {
 
-    private ObjectMapper mapper;
+    private static ObjectMapper mapper;
 
-    public <T> T readValue(String json, Class<T> clazz) {
+    public static void setObjectMapper(ObjectMapper mapper) {
+        JsonUtil.mapper = mapper;
+    }
+
+    public static <T> T readValue(String json, Class<T> clazz) {
         try {
             return mapper.readValue(json, clazz);
         } catch (JsonProcessingException e) {
@@ -23,7 +23,7 @@ public class JsonUtil {
         }
     }
 
-    public <T> Collection<T> readValues(String json, Class<T[]> clazz) {
+    public static <T> Collection<T> readValues(String json, Class<T[]> clazz) {
         try {
             return Arrays.asList(mapper.readValue(json, clazz));
         } catch (IOException e) {
@@ -31,7 +31,7 @@ public class JsonUtil {
         }
     }
 
-    public <T> String writeValue(T object) {
+    public static <T> String writeValue(T object) {
         try {
             return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {

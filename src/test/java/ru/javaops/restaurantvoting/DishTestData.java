@@ -15,8 +15,10 @@ public class DishTestData {
     public static final String BURGER_NAME = "burger";
 
     public static final Dish burger = new Dish(BURGER_ID, "burger", 150, burgerKing);
+    public static final RestaurantDishTo burgerRestaurantTo = new RestaurantDishTo(BURGER_ID, BURGER_NAME, 150);
     public static final Dish cheeseBurger = new Dish(2, "cheeseburger", 200, burgerKing);
     public static final SimpleDishTo newDish = new SimpleDishTo("newDish", 100);
+    public static final RestaurantDishTo newlyAddedDish = new RestaurantDishTo(null, newDish.name(), newDish.price());
     public static final SimpleDishTo updatedDish = new SimpleDishTo("updatedDish", 300);
 
     public static final List<RestaurantDishTo> burgerKingDishes = List.of(restaurantDishTo(burger), restaurantDishTo(cheeseBurger));

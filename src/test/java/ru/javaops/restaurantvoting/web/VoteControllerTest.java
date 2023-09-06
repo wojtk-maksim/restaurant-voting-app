@@ -16,6 +16,8 @@ import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.util.JsonUtil.readValues;
+import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.VoteController.VOTE_URL;
 
 public class VoteControllerTest extends AbstractControllerTest {
@@ -27,7 +29,7 @@ public class VoteControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertIterableEquals(lunches, jsonUtil.readValues(extractJson(result), LunchTo[].class)));
+                .andExpect(result -> assertIterableEquals(lunches, readValues(extractJson(result), LunchTo[].class)));
     }
 
     @Test
@@ -35,7 +37,7 @@ public class VoteControllerTest extends AbstractControllerTest {
     void vote() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(VOTE_URL, DATE_AS_STRING)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(BURGER_KING_ID)))
+                        .content(writeValue(BURGER_KING_ID)))
                 .andDo(print())
                 .andExpect(status().isOk());
     }

@@ -20,6 +20,8 @@ import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
 import static ru.javaops.restaurantvoting.TestUtil.extractJson;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
+import static ru.javaops.restaurantvoting.util.JsonUtil.readValue;
+import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.LunchController.LUNCH_URL;
 
 public class LunchControllerTest extends AbstractControllerTest {
@@ -37,7 +39,7 @@ public class LunchControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertEquals(burgerKingLunch, jsonUtil.readValue(extractJson(result), LunchTo.class)));
+                .andExpect(result -> assertEquals(burgerKingLunch, readValue(extractJson(result), LunchTo.class)));
     }
 
     @Test
@@ -45,7 +47,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     void add() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(LUNCH_URL, BURGER_KING_ID, NEW_DATE_AS_STRING)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(dishIdsForNewLunch)))
+                        .content(writeValue(dishIdsForNewLunch)))
                 .andDo(print())
                 .andExpect(status().isOk());
         assertEquals(newLunch, lunchService.get(BURGER_KING_ID, NEW_DATE));
@@ -56,7 +58,7 @@ public class LunchControllerTest extends AbstractControllerTest {
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(LUNCH_URL, BURGER_KING_ID, DATE)
                         .contentType(APPLICATION_JSON)
-                        .content(jsonUtil.writeValue(dishIdsForUpdatedLunch)))
+                        .content(writeValue(dishIdsForUpdatedLunch)))
                 .andDo(print())
                 .andExpect(status().isOk());
         assertEquals(updatedLunch, lunchService.get(BURGER_KING_ID, DATE));

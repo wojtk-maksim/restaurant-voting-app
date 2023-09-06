@@ -1,4 +1,4 @@
 package ru.javaops.restaurantvoting.to;
 
-public record RestaurantDishTo(int id, String name, int price) {
+public record RestaurantDishTo(Integer id, String name, int price) {
 }

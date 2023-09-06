@@ -1,5 +1,6 @@
 package ru.javaops.restaurantvoting.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class User extends NamedEntity {
     private String email;
 
     @Column(name = "password", nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(name = "registered", nullable = false, columnDefinition = "timestamp default now()", updatable = false)
@@ -31,6 +33,9 @@ public class User extends NamedEntity {
 
     @Column(name = "enabled", nullable = false, columnDefinition = "bool default true")
     private boolean enabled = true;
+
+    @Column(name = "deleted", nullable = false, columnDefinition = "bool default false")
+    private boolean deleted;
 
     @Enumerated(EnumType.STRING)
     @CollectionTable(
@@ -50,6 +55,10 @@ public class User extends NamedEntity {
         this.email = email;
         this.password = password;
         this.roles = EnumSet.copyOf(roles);
+    }
+
+    public User(String name, String email, String password) {
+        this(null, name, email, password, EnumSet.of(Role.USER));
     }
 
     @Override

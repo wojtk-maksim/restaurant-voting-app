@@ -28,9 +28,10 @@ public class Vote {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
+            nullable = false,
             foreignKey = @ForeignKey(
                     name = "fk_user_vote",
-                    foreignKeyDefinition = "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL"
+                    foreignKeyDefinition = "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE"
             ))
     private User user;
 

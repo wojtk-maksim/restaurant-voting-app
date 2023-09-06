@@ -1,9 +1,12 @@
 package ru.javaops.restaurantvoting.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.tools.Server;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.javaops.restaurantvoting.util.JsonUtil;
 
 import java.sql.SQLException;
 
@@ -17,8 +20,8 @@ public class AppConfig {
         return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
     }
 
-    /*@Autowired
+    @Autowired
     void configureAndStoreObjectMapper(ObjectMapper objectMapper) {
-        objectMapper.registerModule(new Hibernate6Module());
-    }*/
+        JsonUtil.setObjectMapper(objectMapper);
+    }
 }

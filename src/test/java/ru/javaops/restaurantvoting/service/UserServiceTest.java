@@ -3,52 +3,28 @@ package ru.javaops.restaurantvoting.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.javaops.restaurantvoting.AbstractTest;
-import ru.javaops.restaurantvoting.error.NotFoundException;
-import ru.javaops.restaurantvoting.model.User;
+import ru.javaops.restaurantvoting.repository.UserRepository;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static ru.javaops.restaurantvoting.TestUtil.matches;
 import static ru.javaops.restaurantvoting.UserTestData.*;
 
 public class UserServiceTest extends AbstractTest {
 
     @Autowired
-    UserService userService;
+    private UserRepository userRepository;
 
-    @Test
-    void getAll() {
-        assertEquals(List.of(admin, user), userService.getAll());
-    }
-
-    @Test
-    void get() {
-        assertEquals(user, userService.get(USER_ID));
-    }
-
-    @Test
-    void getByEmail() {
-        assertEquals(user, userService.getByEmail(USER_EMAIL));
-    }
+    @Autowired
+    private UserService userService;
 
     @Test
     void create() {
-        User created = userService.createOrUpdate(getNew());
-        User newUser = getNew();
-        newUser.setId(created.getId());
-        assertEquals(newUser, created);
-    }
-
-    @Test
-    void update() {
-        User updated = userService.createOrUpdate(getUpdated());
-        assertEquals(getUpdated(), updated);
+        matches(userService.create(getNewUserTo()), getNewUserProfileTo(), "id", "registered");
     }
 
     @Test
     void delete() {
         userService.delete(USER_ID);
-        assertThrows(NotFoundException.class, () -> userService.delete(USER_ID));
+        assertTrue(userRepository.findById(USER_ID).get().isDeleted());
     }
 }
