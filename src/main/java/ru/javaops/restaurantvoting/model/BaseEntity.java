@@ -1,8 +1,10 @@
 package ru.javaops.restaurantvoting.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ru.javaops.restaurantvoting.util.Views;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
@@ -12,7 +14,8 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Integer id;
+    @JsonView(Views.Public.class)
+    protected Long id;
 
     @Override
     public boolean equals(Object o) {
@@ -27,6 +30,6 @@ public abstract class BaseEntity {
 
     @Override
     public int hashCode() {
-        return id == null ? 0 : id;
+        return id == null ? 0 : id.hashCode();
     }
 }

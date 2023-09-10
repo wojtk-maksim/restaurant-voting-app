@@ -8,12 +8,10 @@ import ru.javaops.restaurantvoting.error.EmailOccupiedException;
 import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.model.User;
 import ru.javaops.restaurantvoting.repository.UserRepository;
-import ru.javaops.restaurantvoting.to.user.new_data.NewUserTo;
-import ru.javaops.restaurantvoting.to.user.new_data.UpdatedUserTo;
-import ru.javaops.restaurantvoting.to.user.registered.UserProfileTo;
+import ru.javaops.restaurantvoting.to.user.NewUserTo;
+import ru.javaops.restaurantvoting.to.user.UpdatedUserTo;
 
 import static ru.javaops.restaurantvoting.config.SecurityConfig.PASSWORD_ENCODER;
-import static ru.javaops.restaurantvoting.to.ToConverter.registeredUserTo;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,28 +21,26 @@ public class UserService {
 
     private UserRepository userRepository;
 
-    public UserProfileTo get(int id) {
+    public User get(long id) {
         log.info("get {}", id);
-        User user = userRepository.findById(id).orElseThrow(NotFoundException::new);
-        return registeredUserTo(user);
+        ru.javaops.restaurantvoting.model.User user = userRepository.findById(id).orElseThrow(NotFoundException::new);
+        return user;
     }
 
     @Transactional
-    public UserProfileTo create(NewUserTo newUser) {
+    public User create(NewUserTo newUser) {
         log.info("create {}", newUser);
-        if (userRepository.emailExists(newUser.getEmail())) {
+        if (userRepository.existsByEmail(newUser.getEmail())) {
             throw new EmailOccupiedException();
         }
-        return registeredUserTo(userRepository.save(
-                new User(newUser.getName(), newUser.getEmail().toLowerCase(), PASSWORD_ENCODER.encode(newUser.getPassword())))
-        );
+        return userRepository.save(new User(newUser.getName(), newUser.getEmail().toLowerCase(), PASSWORD_ENCODER.encode(newUser.getPassword())));
     }
 
     @Transactional
-    public void update(User user, UpdatedUserTo updatedUserTo) {
+    public void update(ru.javaops.restaurantvoting.model.User user, UpdatedUserTo updatedUserTo) {
         log.info("update {} to {}", user.getId(), updatedUserTo);
         String email = updatedUserTo.getEmail().toLowerCase();
-        if (!email.equals(user.getEmail()) && userRepository.emailExists(email)) {
+        if (!email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
             throw new EmailOccupiedException();
         }
         if (userRepository.update(
@@ -60,10 +56,11 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(int id) {
+    public void delete(long id) {
         log.info("delete with id {}", id);
-        if (userRepository.delete(id) != 1) {
+        if (userRepository.delete(id) == 0) {
             throw new NotFoundException();
         }
     }
+
 }

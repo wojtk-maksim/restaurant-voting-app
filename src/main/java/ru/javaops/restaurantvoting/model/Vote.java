@@ -1,30 +1,25 @@
 package ru.javaops.restaurantvoting.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
 @Table(
         name = "vote",
         uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"}, name = "uk_date_user"))
-@IdClass(Vote.VoteId.class)
 @Getter
 @Setter
 @NoArgsConstructor
-public class Vote {
+public class Vote extends BaseEntity {
 
-    @Id
     @Column(name = "date", nullable = false)
     @Temporal(TemporalType.DATE)
     private LocalDate date;
 
-    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
@@ -45,35 +40,15 @@ public class Vote {
             ))
     private Lunch lunch;
 
-    public Vote(LocalDate date, User user, Lunch lunch) {
+    public Vote(Long id, LocalDate date, User user, Lunch lunch) {
+        this.id = id;
         this.date = date;
         this.user = user;
         this.lunch = lunch;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Vote that)) {
-            return false;
-        }
-        return date != null && date.equals(that.date) &&
-                user != null && user.equals(that.user);
+    public Vote(LocalDate date, User user, Lunch lunch) {
+        this(null, date, user, lunch);
     }
 
-    @Override
-    public int hashCode() {
-        return (date == null ? 0 : date.hashCode()) + (user == null ? 0 : user.hashCode());
-    }
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class VoteId implements Serializable {
-
-        private LocalDate date;
-
-        private User user;
-    }
 }

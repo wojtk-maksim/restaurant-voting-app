@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.javaops.restaurantvoting.to.user.registered.UserProfileTo;
+import ru.javaops.restaurantvoting.model.User;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -29,18 +30,18 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, UserProfileTo.class), getUserTo(), "registered"));
+                .andExpect(result -> matches(parseObject(result, User.class), user, "registered", "password"));
     }
 
     @Test
     void register() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post(PROFILE_URL)
                         .contentType(APPLICATION_JSON)
-                        .content(writeValue(getNewUserTo())))
+                        .content(writeValue(newUserTo)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, UserProfileTo.class), getNewUserProfileTo(), "id", "registered"));
+                .andExpect(result -> matches(parseObject(result, User.class), newUser, "id", "registered", "password"));
     }
 
     @Test
@@ -48,11 +49,11 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
     void update() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.put(PROFILE_URL)
                         .contentType(APPLICATION_JSON)
-                        .content(writeValue(getUpdatedUserTo())))
+                        .content(writeValue(updatedUserTo)))
                 .andDo(print())
                 .andExpect(status().isOk());
         em.clear();
-        matches(userService.get(USER_ID), getUpdatedUserProfileTo(), "registered");
+        matches(userService.get(USER_ID), updatedUser, "registered", "password");
     }
 
     @Test
@@ -62,6 +63,8 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
         em.clear();
-        matches(userService.get(USER_ID), getDeletedUserProfileTo(), "registered");
+        assertTrue(userService.get(USER_ID).isDeleted());
+        //TODO: prohibit authentication for deleted user
     }
+
 }

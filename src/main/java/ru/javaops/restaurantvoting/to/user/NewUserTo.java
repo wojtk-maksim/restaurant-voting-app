@@ -1,4 +1,4 @@
-package ru.javaops.restaurantvoting.to.user.new_data;
+package ru.javaops.restaurantvoting.to.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -7,7 +7,7 @@ import lombok.Value;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class NewUserTo extends AbstractNewUserTo {
+public class NewUserTo extends AbstractUserTo {
 
     @NotBlank
     @Size(max = 32)

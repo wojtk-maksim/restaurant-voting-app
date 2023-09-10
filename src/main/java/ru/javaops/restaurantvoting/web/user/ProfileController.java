@@ -1,5 +1,6 @@
 package ru.javaops.restaurantvoting.web.user;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -8,12 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.javaops.restaurantvoting.model.User;
 import ru.javaops.restaurantvoting.repository.UserRepository;
 import ru.javaops.restaurantvoting.service.UserService;
-import ru.javaops.restaurantvoting.to.user.new_data.NewUserTo;
-import ru.javaops.restaurantvoting.to.user.new_data.UpdatedUserTo;
-import ru.javaops.restaurantvoting.to.user.registered.UserProfileTo;
+import ru.javaops.restaurantvoting.to.user.NewUserTo;
+import ru.javaops.restaurantvoting.to.user.UpdatedUserTo;
+import ru.javaops.restaurantvoting.util.Views;
 import ru.javaops.restaurantvoting.web.AuthUser;
 
-import static ru.javaops.restaurantvoting.to.ToConverter.registeredUserTo;
+import static ru.javaops.restaurantvoting.config.SecurityConfig.PASSWORD_ENCODER;
 
 @RestController
 @RequestMapping(value = ProfileController.PROFILE_URL, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -28,17 +29,16 @@ public class ProfileController {
     private UserService userService;
 
     @GetMapping
-    public UserProfileTo get(@AuthenticationPrincipal AuthUser authUser) {
+    @JsonView(Views.Public.class)
+    public User get(@AuthenticationPrincipal AuthUser authUser) {
         log.info("get {}", authUser);
-        return registeredUserTo(authUser.getUser());
+        return authUser.getUser();
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public UserProfileTo create(@RequestBody NewUserTo newUserTo) {
+    public User create(@RequestBody NewUserTo newUserTo) {
         log.info("register {}", newUserTo);
-        return registeredUserTo(
-                userRepository.save(new User(newUserTo.getName(), newUserTo.getEmail(), newUserTo.getPassword()))
-        );
+        return userRepository.save(new User(newUserTo.getName(), newUserTo.getEmail(), PASSWORD_ENCODER.encode(newUserTo.getPassword())));
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -52,4 +52,5 @@ public class ProfileController {
         log.info("delete {}", authUser.getUser());
         userService.delete(authUser.getUser().getId());
     }
+
 }

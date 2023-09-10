@@ -5,32 +5,36 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javaops.restaurantvoting.model.Dish;
-import ru.javaops.restaurantvoting.to.RestaurantDishTo;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 @Transactional(readOnly = true)
-public interface DishRepository extends JpaRepository<Dish, Integer> {
+public interface DishRepository extends JpaRepository<Dish, Long> {
 
-    @Query("SELECT new ru.javaops.restaurantvoting.to.RestaurantDishTo(d.id, d.name, d.price) FROM Dish d WHERE d.restaurant.id=:restaurantId")
-    List<RestaurantDishTo> getAllFromRestaurant(int restaurantId);
+    @Query("SELECT d FROM Dish d WHERE d.restaurant.id=:restaurantId ORDER BY CASE WHEN d.enabled=FALSE then 1 else 0 end, d.name")
+    List<Dish> getAllFromRestaurant(long restaurantId);
 
     @Query("SELECT d FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.id=:id")
-    Optional<Dish> get(int restaurantId, int id);
-
-    @Query("SELECT new ru.javaops.restaurantvoting.to.RestaurantDishTo(d.id, d.name, d.price) FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.id=:id")
-    Optional<RestaurantDishTo> getRestaurantDishTo(int restaurantId, int id);
+    Optional<Dish> get(long restaurantId, long id);
 
     @Query("SELECT d FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.id IN :ids")
-    Set<Dish> getByIds(int restaurantId, Set<Integer> ids);
+    List<Dish> getByIds(long restaurantId, Set<Long> ids);
 
     @Modifying
     @Transactional
     @Query("DELETE FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.id=:id")
-    int delete(int restaurantId, int id);
+    int delete(long restaurantId, long id);
 
     @Query("SELECT CASE WHEN (COUNT(d) > 0) THEN TRUE ELSE FALSE END FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.name=:name")
-    boolean exists(int restaurantId, String name);
+    boolean exists(long restaurantId, String name);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Dish d SET d.enabled=:enabled WHERE d.restaurant.id=:restaurantId AND d.id=:id")
+    int enable(long restaurantId, long id, boolean enabled);
+
+    @Query("FROM Dish d WHERE d.restaurant.id=:restaurantId AND d.id IN :ids ORDER BY d.price")
+    List<Dish> getByRestaurantAndIds(long restaurantId, Set<Long> ids);
 }

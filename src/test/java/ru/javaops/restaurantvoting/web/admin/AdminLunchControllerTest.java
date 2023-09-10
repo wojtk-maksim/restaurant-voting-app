@@ -1,15 +1,15 @@
-package ru.javaops.restaurantvoting.web;
+package ru.javaops.restaurantvoting.web.admin;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javaops.restaurantvoting.error.NotFoundException;
+import ru.javaops.restaurantvoting.model.Lunch;
 import ru.javaops.restaurantvoting.repository.LunchRepository;
 import ru.javaops.restaurantvoting.service.LunchService;
-import ru.javaops.restaurantvoting.to.LunchTo;
+import ru.javaops.restaurantvoting.web.AbstractControllerTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -17,14 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.LunchTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
-import static ru.javaops.restaurantvoting.TestUtil.extractJson;
+import static ru.javaops.restaurantvoting.TestUtil.matches;
+import static ru.javaops.restaurantvoting.TestUtil.parseObject;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
-import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
-import static ru.javaops.restaurantvoting.util.JsonUtil.readValue;
 import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
-import static ru.javaops.restaurantvoting.web.LunchController.LUNCH_URL;
+import static ru.javaops.restaurantvoting.web.admin.AdminLunchController.ADMIN_LUNCHES_URL;
 
-public class LunchControllerTest extends AbstractControllerTest {
+public class AdminLunchControllerTest extends AbstractControllerTest {
 
     @Autowired
     private LunchRepository lunchRepository;
@@ -33,43 +32,43 @@ public class LunchControllerTest extends AbstractControllerTest {
     private LunchService lunchService;
 
     @Test
-    @WithUserDetails(USER_EMAIL)
+    @WithUserDetails(ADMIN_EMAIL)
     void getFromRestaurant() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(LUNCH_URL, BURGER_KING_ID, DATE_AS_STRING))
+        mockMvc.perform(MockMvcRequestBuilders.get(ADMIN_LUNCHES_URL + "/" + DATE, BURGER_KING_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertEquals(burgerKingLunch, readValue(extractJson(result), LunchTo.class)));
+                .andExpect(result -> matches(parseObject(result, Lunch.class), burgerKingLunch, "id", "restaurant", "dishes.restaurant"));
     }
 
     @Test
     @WithUserDetails(ADMIN_EMAIL)
     void add() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(LUNCH_URL, BURGER_KING_ID, NEW_DATE_AS_STRING)
+        mockMvc.perform(MockMvcRequestBuilders.post(ADMIN_LUNCHES_URL, BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
-                        .content(writeValue(dishIdsForNewLunch)))
+                        .content(writeValue(NEW_LUNCH_DATA)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        assertEquals(newLunch, lunchService.get(BURGER_KING_ID, NEW_DATE));
+        matches(lunchService.getFromRestaurantOnDate(BURGER_KING_ID, NEW_DATE), savedLunch, "id", "restaurant", "dishes.restaurant");
     }
 
     @Test
     @WithUserDetails(ADMIN_EMAIL)
     void update() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(LUNCH_URL, BURGER_KING_ID, DATE)
+        mockMvc.perform(MockMvcRequestBuilders.put(ADMIN_LUNCHES_URL + "/" + DATE, BURGER_KING_ID)
                         .contentType(APPLICATION_JSON)
-                        .content(writeValue(dishIdsForUpdatedLunch)))
+                        .content(writeValue(dishIdsForNewLunch)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        assertEquals(updatedLunch, lunchService.get(BURGER_KING_ID, DATE));
+        matches(lunchService.getFromRestaurantOnDate(BURGER_KING_ID, DATE), updatedLunch, "id", "restaurant", "dishes.restaurant");
     }
 
     @Test
     @WithUserDetails(ADMIN_EMAIL)
     void delete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete(LUNCH_URL, BURGER_KING_ID, DATE))
+        mockMvc.perform(MockMvcRequestBuilders.delete(ADMIN_LUNCHES_URL + "/" + DATE, BURGER_KING_ID))
                 .andDo(print())
                 .andExpect(status().isOk());
-        assertThrows(NotFoundException.class, () -> lunchService.get(BURGER_KING_ID, DATE));
+        assertThrows(NotFoundException.class, () -> lunchService.getFromRestaurantOnDate(BURGER_KING_ID, DATE));
     }
 }

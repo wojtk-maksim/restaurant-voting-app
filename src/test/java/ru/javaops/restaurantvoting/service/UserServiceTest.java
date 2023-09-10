@@ -19,7 +19,7 @@ public class UserServiceTest extends AbstractTest {
 
     @Test
     void create() {
-        matches(userService.create(getNewUserTo()), getNewUserProfileTo(), "id", "registered");
+        matches(userService.create(newUserTo), newUser, "id", "registered", "password");
     }
 
     @Test

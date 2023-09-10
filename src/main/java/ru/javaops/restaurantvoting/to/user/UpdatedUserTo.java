@@ -1,4 +1,4 @@
-package ru.javaops.restaurantvoting.to.user.new_data;
+package ru.javaops.restaurantvoting.to.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,7 +8,7 @@ import ru.javaops.restaurantvoting.util.validation.MatchPassword;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class UpdatedUserTo extends AbstractNewUserTo {
+public class UpdatedUserTo extends AbstractUserTo {
 
     @NotBlank
     @Size(max = 32)

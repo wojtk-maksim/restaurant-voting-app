@@ -4,6 +4,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ru.javaops.restaurantvoting.util.JsonUtil.readValue;
@@ -27,7 +28,7 @@ public class TestUtil {
         return readValue(result.getResponse().getContentAsString(), clazz);
     }
 
-    public static <T> Collection<T> parseObjects(MvcResult result, Class<T[]> clazz) throws UnsupportedEncodingException {
-        return readValues(result.getResponse().getContentAsString(), clazz);
+    public static <T> List<T> parseObjects(MvcResult result, Class<T[]> clazz) throws UnsupportedEncodingException {
+        return (List<T>) readValues(result.getResponse().getContentAsString(), clazz);
     }
 }

@@ -1,14 +1,17 @@
 package ru.javaops.restaurantvoting.model;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import ru.javaops.restaurantvoting.util.Views.Public;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(
@@ -17,6 +20,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonPropertyOrder({"date", "dishes"})
 public class Lunch extends BaseEntity {
 
     @Column(name = "date", nullable = false)
@@ -32,21 +36,21 @@ public class Lunch extends BaseEntity {
             ))
     private Restaurant restaurant;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "lunch_item",
-            joinColumns = @JoinColumn(name = "lunch_id"),
-            inverseJoinColumns = @JoinColumn(name = "dish_id"),
+            joinColumns = @JoinColumn(name = "lunch_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "dish_id", referencedColumnName = "id"),
             inverseForeignKey = @ForeignKey(
                     name = "fk_dish_lunch",
                     foreignKeyDefinition = "FOREIGN KEY(dish_id) REFERENCES Dish(id) ON DELETE CASCADE"
             ),
             uniqueConstraints = @UniqueConstraint(columnNames = {"lunch_id", "dish_id"}, name = "uk_lunch_dish"))
-    @JoinColumn
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Set<Dish> dishes;
+    @JsonView(Public.class)
+    private List<Dish> dishes;
 
-    public Lunch(LocalDate date, Restaurant restaurant, Set<Dish> dishes) {
+    public Lunch(LocalDate date, Restaurant restaurant, List<Dish> dishes) {
         this.date = date;
         this.restaurant = restaurant;
         this.dishes = dishes;

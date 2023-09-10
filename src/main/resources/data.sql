@@ -1,17 +1,18 @@
-INSERT INTO USERS (NAME, EMAIL, PASSWORD)
-VALUES ('user', 'user@yandex.ru', '{noop}user'),
-       ('admin', 'admin@gmail.com', '{noop}admin');
+INSERT INTO USERS (NAME, EMAIL, PASSWORD, DELETED)
+VALUES ('user', 'user@yandex.ru', '{noop}user', FALSE),
+       ('admin', 'admin@gmail.com', '{noop}admin', FALSE),
+       ('deleted', 'deleted@gmail.com', '{noop}deleted', TRUE);
 
 INSERT INTO USER_ROLE (USER_ID, ROLE)
 VALUES (1, 'USER'),
        (2, 'USER'),
        (2, 'ADMIN');
 
-INSERT INTO RESTAURANT (NAME)
-VALUES ('Burger King'),
-       ('KFC'),
-       ('Subway'),
-       ('Dodo Pizza');
+INSERT INTO RESTAURANT (NAME, ENABLED)
+VALUES ('Burger King', TRUE),
+       ('KFC', TRUE),
+       ('Subway', FALSE),
+       ('Dodo Pizza', TRUE);
 
 INSERT INTO DISH (PRICE, RESTAURANT_ID, NAME)
 VALUES (150, 1, 'burger'),

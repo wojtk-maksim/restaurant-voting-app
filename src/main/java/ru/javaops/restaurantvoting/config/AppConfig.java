@@ -1,16 +1,21 @@
 package ru.javaops.restaurantvoting.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import lombok.extern.slf4j.Slf4j;
 import org.h2.tools.Server;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.javaops.restaurantvoting.service.RestaurantService;
 import ru.javaops.restaurantvoting.util.JsonUtil;
+import ru.javaops.restaurantvoting.util.RestaurantUtil;
 
 import java.sql.SQLException;
 
 @Configuration
+@EnableCaching
 @Slf4j
 public class AppConfig {
 
@@ -22,6 +27,13 @@ public class AppConfig {
 
     @Autowired
     void configureAndStoreObjectMapper(ObjectMapper objectMapper) {
+        objectMapper.registerModule(new Hibernate6Module());
         JsonUtil.setObjectMapper(objectMapper);
     }
+
+    @Autowired
+    void configureRestaurantUtil(RestaurantService restaurantService) {
+        RestaurantUtil.setRestaurantService(restaurantService);
+    }
+
 }

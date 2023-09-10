@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import ru.javaops.restaurantvoting.error.DeletedUserException;
 import ru.javaops.restaurantvoting.model.Role;
 import ru.javaops.restaurantvoting.model.User;
 import ru.javaops.restaurantvoting.repository.UserRepository;
@@ -41,6 +42,9 @@ public class SecurityConfig {
             log.debug("authenticating {}", email);
             User user = userRepository.getByEmail(email.toLowerCase())
                     .orElseThrow(() -> new UsernameNotFoundException("User '" + email + "' not found"));
+            if (user.isDeleted()) {
+                throw new DeletedUserException();
+            }
             return new AuthUser(user);
         };
     }
