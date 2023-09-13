@@ -10,11 +10,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.javaops.restaurantvoting.LunchTestData.DATE;
-import static ru.javaops.restaurantvoting.LunchTestData.burgerKingLunch;
+import static ru.javaops.restaurantvoting.LunchTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
-import static ru.javaops.restaurantvoting.TestUtil.matches;
-import static ru.javaops.restaurantvoting.TestUtil.parseObject;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
 import static ru.javaops.restaurantvoting.web.user.LunchController.LUNCHES_URL;
 
@@ -27,7 +24,7 @@ public class LunchControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, Lunch.class), burgerKingLunch, "id", "restaurant", "dishes.restaurant"));
+                .andExpect(result -> LUNCH_MATCHER.matches(result, burgerKingLunch, Lunch.class));
     }
 
 }

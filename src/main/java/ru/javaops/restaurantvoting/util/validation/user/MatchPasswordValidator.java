@@ -1,4 +1,4 @@
-package ru.javaops.restaurantvoting.util.validation;
+package ru.javaops.restaurantvoting.util.validation.user;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

@@ -1,23 +1,24 @@
 package ru.javaops.restaurantvoting.service;
 
+import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.javaops.restaurantvoting.error.NotFoundException;
-import ru.javaops.restaurantvoting.model.BaseEntity;
 import ru.javaops.restaurantvoting.model.Dish;
+import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.repository.DishRepository;
 import ru.javaops.restaurantvoting.repository.RestaurantRepository;
-import ru.javaops.restaurantvoting.to.dish.SimpleDishTo;
+import ru.javaops.restaurantvoting.to.dish.NewDishTo;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
+import static ru.javaops.restaurantvoting.util.DishUtil.checkDishExists;
+import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantExists;
 
 @Service
 @Transactional(readOnly = true)
@@ -32,64 +33,78 @@ public class DishService {
     DishRepository dishRepository;
 
     @Cacheable(value = "dishes", key = "#restaurantId")
-    public Map<Long, Dish> getAllFromRestaurant(long restaurantId) {
+    public Map<Long, Dish> getAllFromRestaurant(Long restaurantId) {
         log.debug("get all from restaurant {}", restaurantId);
         return dishRepository.getAllFromRestaurant(restaurantId).stream()
-                .collect(Collectors.toMap(BaseEntity::getId, d -> d, (k, v) -> v, LinkedHashMap::new));
+                .collect(toMap(
+                        Dish::getId,
+                        d -> d,
+                        (k, v) -> v,
+                        LinkedHashMap::new)
+                );
     }
 
-    public Dish getFromRestaurant(long restaurantId, long id) {
+    public Dish getFromRestaurant(Long restaurantId, Long id) {
         log.debug("get {} from restaurant {}", id, restaurantId);
-        return dishRepository.get(restaurantId, id).orElseThrow(NotFoundException::new);
+        Dish dish = dishRepository.get(restaurantId, id);
+        checkDishExists(dish, restaurantId, id);
+        return dish;
     }
 
     @Transactional
     @CacheEvict(value = "dishes", key = "#restaurantId", allEntries = true)
-    public Dish add(long restaurantId, SimpleDishTo newDish) {
+    public Dish add(Long restaurantId, NewDishTo newDish) {
         log.debug("add new {} to restaurant {}", newDish, restaurantId);
-        if (dishRepository.exists(restaurantId, newDish.getName())) {
+
+        String name = newDish.getName();
+        Tuple validationData = dishRepository.getNewDishValidationData(restaurantId, name);
+        Restaurant restaurant = (Restaurant) validationData.get("restaurant");
+        checkRestaurantExists(restaurant, restaurantId);
+
+        if (validationData.get("name") != null) {
             throw new IllegalArgumentException("dish with this name already exists");
         }
+
         return dishRepository.save(
-                new Dish(newDish.getName(), newDish.getPrice(), restaurantRepository.getReferenceById(restaurantId))
+                new Dish(name, newDish.getPrice(), restaurant)
         );
     }
 
     @Transactional
     @CacheEvict(value = "dishes", key = "#restaurantId", allEntries = true)
-    public void update(long restaurantId, long id, SimpleDishTo simpleDishTo) {
-        Dish dish = dishRepository.get(restaurantId, id).orElseThrow(NotFoundException::new);
-        if (!dish.getName().equals(simpleDishTo.getName()) && dishRepository.exists(restaurantId, simpleDishTo.getName())) {
+    public void update(Long restaurantId, Long id, NewDishTo newDish) {
+        log.debug("update {} id in restaurant {} to {}", id, restaurantId, newDish);
+
+        String name = newDish.getName();
+        Tuple validationData = dishRepository.getUpdatedDishValidationData(id, name);
+
+        Dish dish = (Dish) validationData.get("dish");
+        checkDishExists(dish, restaurantId, id);
+
+        if (validationData.get("name") != null && !dish.getName().equals(name)) {
             throw new IllegalArgumentException("dish with this name already exists");
         }
-        dish.setName(simpleDishTo.getName());
-        dish.setPrice(simpleDishTo.getPrice());
-        dishRepository.save(dish);
+
+        dish.setName(newDish.getName());
+        dish.setPrice(newDish.getPrice());
     }
 
     @Transactional
     @CacheEvict(value = "dishes", key = "#restaurantId", allEntries = true)
-    public void enable(long restaurantId, long id, boolean enabled) {
+    public void enable(Long restaurantId, Long id, boolean enabled) {
         log.debug(enabled ? "enable {} in restaurant {}" : "disable {} in restaurant {}", id, restaurantId);
-        if (dishRepository.enable(restaurantId, id, enabled) == 0) {
-            throw new NotFoundException();
-        }
+        Dish dish = dishRepository.get(restaurantId, id);
+        checkDishExists(dish, restaurantId, id);
+        dish.setEnabled(enabled);
     }
 
     @Transactional
     @CacheEvict(value = "dishes", key = "#restaurantId", allEntries = true)
-    public void delete(long restaurantId, long id) {
+    public void delete(Long restaurantId, Long id) {
         log.debug("delete {} from restaurant {}", id, restaurantId);
-        if (dishRepository.delete(restaurantId, id) == 0) {
-            throw new NotFoundException();
-        }
+        Dish dish = dishRepository.get(restaurantId, id);
+        checkDishExists(dish, restaurantId, id);
+        dish.setDeleted(true);
     }
 
-    public List<Dish> getByIds(long restaurantId, Set<Long> dishIds) {
-        List<Dish> dishes = dishRepository.getByIds(restaurantId, dishIds);
-        if (dishes.isEmpty() || dishes.size() != dishIds.size()) {
-            throw new IllegalArgumentException("invalid restaurant/dishes combination");
-        }
-        return dishes;
-    }
 }

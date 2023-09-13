@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.javaops.restaurantvoting.model.User;
-import ru.javaops.restaurantvoting.repository.UserRepository;
+import ru.javaops.restaurantvoting.service.UserService;
 import ru.javaops.restaurantvoting.util.Views.Public;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkExists;
+import static ru.javaops.restaurantvoting.util.UserUtil.checkUserDeleted;
 import static ru.javaops.restaurantvoting.web.UrlData.API;
 import static ru.javaops.restaurantvoting.web.UrlData.USERS;
 
@@ -24,23 +24,15 @@ public class UserController {
 
     public static final String USERS_URL = API + USERS;
 
-    public static final String DELETED = "DELETED";
-
-    private UserRepository userRepository;
+    private UserService userService;
 
     @GetMapping("/{id}")
     @JsonView(Public.class)
-    public User get(@PathVariable int id) {
+    public User get(@PathVariable Long id) {
         log.info("get {}", id);
-        User user = checkExists(userRepository.get(id));
-        if (user.isDeleted()) {
-            return deletedTo(user);
-        }
+        User user = userService.get(id);
+        checkUserDeleted(user, id);
         return user;
-    }
-
-    public static User deletedTo(User user) {
-        return new User(user.getId(), DELETED, null, null, null, true, null);
     }
 
 }

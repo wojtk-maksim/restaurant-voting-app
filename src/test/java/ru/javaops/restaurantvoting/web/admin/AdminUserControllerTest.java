@@ -11,7 +11,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.javaops.restaurantvoting.TestUtil.*;
 import static ru.javaops.restaurantvoting.UserTestData.*;
 import static ru.javaops.restaurantvoting.web.admin.AdminUserController.ADMIN_USERS_URL;
 
@@ -24,7 +23,7 @@ public class AdminUserControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObjects(result, User[].class), users, "password", "registered"));
+                .andExpect(result -> USER_MATCHER.matches(result, users, User[].class));
     }
 
     @Test
@@ -33,7 +32,7 @@ public class AdminUserControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, User.class), user, "password", "registered"));
+                .andExpect(result -> USER_MATCHER.matches(result, user, User.class));
     }
 
     @Test

@@ -1,17 +1,11 @@
 package ru.javaops.restaurantvoting;
 
-import ru.javaops.restaurantvoting.model.Lunch;
-import ru.javaops.restaurantvoting.model.Vote;
 import ru.javaops.restaurantvoting.web.VoteController;
 
-import static ru.javaops.restaurantvoting.LunchTestData.*;
-import static ru.javaops.restaurantvoting.RestaurantTestData.burgerKing;
-import static ru.javaops.restaurantvoting.RestaurantTestData.kfc;
-import static ru.javaops.restaurantvoting.UserTestData.admin;
+import static ru.javaops.restaurantvoting.LunchTestData.NEW_DATE;
+import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
 
 public class VoteTestData {
 
-    public static final Vote adminVote = new Vote(DATE, admin, new Lunch(burgerKingLunch.getDate(), burgerKing, burgerKingLunchDishes));
-
-    public static final VoteController.SimpleVote NEW_VOTE = new VoteController.SimpleVote(DATE, kfc.getId());
+    public static final VoteController.SimpleVote NEW_VOTE = new VoteController.SimpleVote(NEW_DATE, BURGER_KING_ID);
 }

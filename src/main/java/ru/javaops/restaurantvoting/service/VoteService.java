@@ -1,35 +1,32 @@
 package ru.javaops.restaurantvoting.service;
 
+import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.javaops.restaurantvoting.error.InvalidVoteException;
 import ru.javaops.restaurantvoting.model.Lunch;
-import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.model.User;
 import ru.javaops.restaurantvoting.model.Vote;
 import ru.javaops.restaurantvoting.repository.LunchRepository;
 import ru.javaops.restaurantvoting.repository.UserRepository;
 import ru.javaops.restaurantvoting.repository.VoteRepository;
-import ru.javaops.restaurantvoting.to.VoteValidationObject;
-import ru.javaops.restaurantvoting.to.VoterTo;
 import ru.javaops.restaurantvoting.to.lunch.LunchWithVotersTo;
+import ru.javaops.restaurantvoting.to.lunch.VoterTo;
 
-import java.time.*;
-import java.util.Collections;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkAvailable;
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkExists;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
+import static ru.javaops.restaurantvoting.util.LunchUtil.checkLunchAvailableForVoting;
+import static ru.javaops.restaurantvoting.util.LunchUtil.checkLunchExists;
+import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkDeadline;
 
 @Service
 @Transactional(readOnly = true)
 @AllArgsConstructor
 public class VoteService {
-
-    private static final LocalTime REVOTE_DEADLINE = LocalTime.of(11, 0);
 
     private UserRepository userRepository;
 
@@ -40,49 +37,41 @@ public class VoteService {
     private LunchService lunchService;
 
     public List<LunchWithVotersTo> getOffersOnDate(LocalDate date) {
-        List<Lunch> lunches = lunchService.getAllOnDate(date);
+        List<Lunch> lunches = lunchService.getAllOnDate(date).stream()
+                .filter(l -> l.isEnabled() && l.getRestaurant().isEnabled() && !l.getRestaurant().isDeleted())
+                .toList();
         if (lunches.isEmpty()) {
-            return Collections.emptyList();
+            return emptyList();
         }
         Map<Long, List<VoterTo>> votersByLunch = userRepository.getVotersOnDate(date).stream()
-                .collect(Collectors.groupingBy(VoterTo::lunchId));
+                .collect(groupingBy(VoterTo::restaurantId));
         return lunches.stream()
-                .map(l -> new LunchWithVotersTo(l.getRestaurant(), votersByLunch.get(l.getId())))
-                .collect(Collectors.toList());
+                .map(l -> new LunchWithVotersTo(
+                        l,
+                        votersByLunch.get(l.getRestaurant().getId())
+                ))
+                .toList();
     }
 
     @Transactional
-    public void vote(LocalDate date, User user, long restaurantId) {
-        VoteValidationObject voteValidationObject = lunchRepository.getRestaurantLunchVote(restaurantId, date, user.getId());
+    public void vote(LocalDate date, Long userId, Long restaurantId) {
+        Tuple voteValidationTuple = lunchRepository.getVoteValidationTuple(restaurantId, date, userId);
 
-        Restaurant restaurant = voteValidationObject.restaurant();
-        checkAvailable(checkExists(restaurant));
+        Lunch lunch = (Lunch) voteValidationTuple.get("lunch");
+        checkLunchExists(lunch, restaurantId, date);
+        checkLunchAvailableForVoting(lunch, restaurantId, date);
 
-        Lunch lunch = voteValidationObject.lunch();
-        checkExists(lunch);
-
-        Vote vote = voteValidationObject.vote();
+        Vote vote = (Vote) voteValidationTuple.get("vote");
         if (vote != null) {
-            if (lunch.getId().equals(vote.getLunch().getId())) {
-                throw new InvalidVoteException("you have already voted for this lunch");
+            if (lunch.equals(vote.getLunch())) {
+                throw new IllegalArgumentException("you have already voted for this restaurant");
             }
-            if (currentDateTime().isAfter(deadline(date))) {
-                throw new InvalidVoteException("you can't revote after 11:00");
-            }
+            checkDeadline(date, "vote for another restaurant");
             vote.setLunch(lunch);
-            return;
+        } else {
+            User user = (User) voteValidationTuple.get("user");
+            voteRepository.save(new Vote(null, date, user, lunch));
         }
-
-        voteRepository.save(new Vote(null, date, voteValidationObject.user(), lunch));
-    }
-
-    private static LocalDateTime currentDateTime() {
-        ZonedDateTime currentDateTime = ZonedDateTime.ofInstant(Instant.now(), ZoneId.of("Europe/Moscow"));
-        return LocalDateTime.of(currentDateTime.toLocalDate(), currentDateTime.toLocalTime());
-    }
-
-    private static LocalDateTime deadline(LocalDate date) {
-        return LocalDateTime.of(date, REVOTE_DEADLINE);
     }
 
 }

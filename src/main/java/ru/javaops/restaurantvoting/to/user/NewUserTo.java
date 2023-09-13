@@ -1,20 +1,12 @@
 package ru.javaops.restaurantvoting.to.user;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.Getter;
 
-@Value
-@EqualsAndHashCode(callSuper = true)
-public class NewUserTo extends AbstractUserTo {
+@Getter
+public class NewUserTo extends AbstractNewUserTo {
 
-    @NotBlank
-    @Size(max = 32)
-    String password;
-
-    public NewUserTo(String name, String email, String password) {
-        super(name, email);
-        this.password = password;
+    public NewUserTo(String name, String email, String newPassword) {
+        super(name, email, newPassword);
     }
+
 }

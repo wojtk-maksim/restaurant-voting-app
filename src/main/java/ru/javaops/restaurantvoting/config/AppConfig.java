@@ -9,8 +9,10 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.javaops.restaurantvoting.service.RestaurantService;
+import ru.javaops.restaurantvoting.service.UserService;
 import ru.javaops.restaurantvoting.util.JsonUtil;
 import ru.javaops.restaurantvoting.util.RestaurantUtil;
+import ru.javaops.restaurantvoting.util.UserUtil;
 
 import java.sql.SQLException;
 
@@ -32,8 +34,9 @@ public class AppConfig {
     }
 
     @Autowired
-    void configureRestaurantUtil(RestaurantService restaurantService) {
+    void configureUtil(RestaurantService restaurantService, UserService userService) {
         RestaurantUtil.setRestaurantService(restaurantService);
+        UserUtil.setUserService(userService);
     }
 
 }

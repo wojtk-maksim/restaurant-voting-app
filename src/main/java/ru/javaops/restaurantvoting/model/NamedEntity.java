@@ -15,4 +15,5 @@ public abstract class NamedEntity extends BaseEntity {
     @Column(name = "name", nullable = false)
     @JsonView(Public.class)
     protected String name;
+
 }

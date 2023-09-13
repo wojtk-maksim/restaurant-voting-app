@@ -1,7 +1,6 @@
 package ru.javaops.restaurantvoting.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,25 +20,20 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User extends NamedEntity {
-
-    @Column(name = "email", nullable = false, unique = true)
-    @JsonView(Public.class)
-    private String email;
-
-    @Column(name = "password", nullable = false)
-    @JsonIgnore
-    private String password;
-
-    @Column(name = "registered", nullable = false, columnDefinition = "timestamp default now()", updatable = false)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @JsonView(Public.class)
-    private Date registered = new Date();
+public class User extends NamedEntity implements Enablable, Deletable {
 
     @Column(name = "enabled", nullable = false, columnDefinition = "bool default true")
     @JsonView(Public.class)
-    private boolean enabled = true;
-
+    protected boolean enabled = true;
+    @Column(name = "email", nullable = false, unique = true)
+    @JsonView(Public.class)
+    private String email;
+    @Column(name = "password", nullable = false)
+    @JsonIgnore
+    private String password;
+    @Column(name = "registered", nullable = false, columnDefinition = "timestamp default now()", updatable = false)
+    @JsonView(Public.class)
+    private Date registered = new Date();
     @Column(name = "deleted", nullable = false, columnDefinition = "bool default false")
     @JsonView(Admin.class)
     private boolean deleted;
@@ -57,22 +51,22 @@ public class User extends NamedEntity {
     @JsonView(Public.class)
     private Set<Role> roles;
 
-    public User(Long id, String name, String email, String password, Date registered, boolean enabled, Set<Role> roles) {
+    public User(Long id, String name, String email, String password, Set<Role> roles, boolean enabled, boolean deleted) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
-        this.registered = registered;
-        this.enabled = enabled;
         this.roles = roles;
+        this.enabled = enabled;
+        this.deleted = deleted;
     }
 
-    public User(Long id, String name, String email, String password, boolean enabled, Set<Role> roles) {
-        this(id, name, email, password, new Date(), enabled, roles);
+    public User(Long id, String name, String email, String password, Set<Role> roles, boolean enabled) {
+        this(id, name, email, password, roles, enabled, false);
     }
 
     public User(Long id, String name, String email, String password, Set<Role> roles) {
-        this(id, name, email, password, true, roles);
+        this(id, name, email, password, roles, true);
     }
 
     public User(String name, String email, String password) {
@@ -83,4 +77,5 @@ public class User extends NamedEntity {
     public String toString() {
         return "User {id: " + id + ", name: " + name + ", email: " + email + ", password: " + password + "}";
     }
+
 }

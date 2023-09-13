@@ -9,15 +9,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.service.RestaurantService;
-import ru.javaops.restaurantvoting.util.RestaurantUtil;
 import ru.javaops.restaurantvoting.util.Views.Public;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkAvailable;
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkExists;
+import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantDeleted;
+import static ru.javaops.restaurantvoting.util.RestaurantUtil.getRestaurantIfExists;
 import static ru.javaops.restaurantvoting.web.UrlData.API;
 import static ru.javaops.restaurantvoting.web.UrlData.RESTAURANTS;
 
@@ -37,16 +35,16 @@ public class RestaurantController {
     public List<Restaurant> getAll() {
         log.info("get all");
         return restaurantService.getAll().values().stream()
-                .takeWhile(Restaurant::isEnabled)
-                .collect(Collectors.toList());
+                .takeWhile(r -> !r.isDeleted())
+                .toList();
     }
 
     @GetMapping("/{id}")
     @JsonView(Public.class)
-    public Restaurant get(@PathVariable int id) {
+    public Restaurant get(@PathVariable Long id) {
         log.info("get {}", id);
-        Restaurant restaurant = checkExists(RestaurantUtil.getRestaurant(id));
-        checkAvailable(restaurant);
+        Restaurant restaurant = getRestaurantIfExists(id);
+        checkRestaurantDeleted(restaurant);
         return restaurant;
     }
 

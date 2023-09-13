@@ -1,6 +1,6 @@
 package ru.javaops.restaurantvoting.model;
 
-public interface Enableable {
+public interface Enablable {
 
     boolean isEnabled();
 

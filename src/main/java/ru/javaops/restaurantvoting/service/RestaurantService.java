@@ -6,14 +6,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.repository.RestaurantRepository;
 import ru.javaops.restaurantvoting.to.restaurant.NewRestaurantTo;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
+import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantDeleted;
+import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantExists;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,45 +29,57 @@ public class RestaurantService {
     public Map<Long, Restaurant> getAll() {
         log.debug("get all");
         return restaurantRepository.getAll().stream()
-                .collect(Collectors.toMap(Restaurant::getId, d -> d, (k, v) -> v, LinkedHashMap::new));
+                .collect(toMap(
+                        Restaurant::getId,
+                        r -> r,
+                        (k, v) -> v,
+                        LinkedHashMap::new)
+                );
     }
 
-    public Restaurant get(long id) {
+    public Restaurant get(Long id) {
         log.debug("get {}", id);
-        return restaurantRepository.findById(id).orElseThrow(NotFoundException::new);
+        Restaurant restaurant = restaurantRepository.get(id);
+        checkRestaurantExists(restaurant, id);
+        return restaurant;
     }
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
-    public Restaurant add(NewRestaurantTo newRestaurantTo) {
-        log.debug("add new {}", newRestaurantTo);
-        return restaurantRepository.save(new Restaurant(null, newRestaurantTo.name()));
+    public Restaurant add(NewRestaurantTo newRestaurant) {
+        log.debug("add new {}", newRestaurant);
+        return restaurantRepository.save(
+                new Restaurant(null, newRestaurant.getName())
+        );
     }
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
-    public void update(long id, NewRestaurantTo newRestaurantTo) {
-        log.debug("update {} to {}", id, newRestaurantTo);
-        if (restaurantRepository.update(id, newRestaurantTo.name()) == 0) {
-            throw new NotFoundException();
-        }
+    public void update(Long id, NewRestaurantTo newData) {
+        log.debug("update {} to {}", id, newData);
+        Restaurant restaurant = restaurantRepository.get(id);
+        checkRestaurantExists(restaurant, id);
+        checkRestaurantDeleted(restaurant);
+        restaurant.setName(newData.getName());
     }
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
     public void enable(long id, boolean enabled) {
         log.debug(enabled ? "enable {}" : "disable {}", id);
-        if (restaurantRepository.enable(id, enabled) == 0) {
-            throw new NotFoundException();
-        }
+        Restaurant restaurant = restaurantRepository.get(id);
+        checkRestaurantExists(restaurant, id);
+        checkRestaurantDeleted(restaurant);
+        restaurant.setEnabled(enabled);
     }
 
-    @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
+    @CacheEvict(value = "restaurants", allEntries = true)
     public void delete(long id) {
         log.debug("delete {}", id);
-        if (restaurantRepository.delete(id) == 0) {
-            throw new NotFoundException();
-        }
+        Restaurant restaurant = restaurantRepository.get(id);
+        checkRestaurantExists(restaurant, id);
+        restaurant.setDeleted(true);
     }
+
 }

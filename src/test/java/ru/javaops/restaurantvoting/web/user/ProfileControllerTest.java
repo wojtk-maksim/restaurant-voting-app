@@ -12,8 +12,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.javaops.restaurantvoting.TestUtil.matches;
-import static ru.javaops.restaurantvoting.TestUtil.parseObject;
 import static ru.javaops.restaurantvoting.UserTestData.*;
 import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.user.ProfileController.PROFILE_URL;
@@ -30,7 +28,7 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, User.class), user, "registered", "password"));
+                .andExpect(result -> USER_MATCHER.matches(result, user, User.class));
     }
 
     @Test
@@ -41,7 +39,7 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, User.class), newUser, "id", "registered", "password"));
+                .andExpect(result -> USER_MATCHER.matches(result, newUser, User.class, "id"));
     }
 
     @Test
@@ -52,8 +50,8 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
                         .content(writeValue(updatedUserTo)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        em.clear();
-        matches(userService.get(USER_ID), updatedUser, "registered", "password");
+        //em.clear();
+        USER_MATCHER.matches(userService.get(USER_ID), updatedUser);
     }
 
     @Test
@@ -62,9 +60,8 @@ public class ProfileControllerTest extends AbstractUserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(PROFILE_URL))
                 .andDo(print())
                 .andExpect(status().isOk());
-        em.clear();
+        //em.clear();
         assertTrue(userService.get(USER_ID).isDeleted());
-        //TODO: prohibit authentication for deleted user
     }
 
 }

@@ -14,8 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.DishTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
-import static ru.javaops.restaurantvoting.TestUtil.matches;
-import static ru.javaops.restaurantvoting.TestUtil.parseObject;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.admin.AdminDishController.ADMIN_DISHES_URL;
@@ -34,7 +32,7 @@ public class AdminDishControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, Dish.class), savedDish, "id", "restaurant"));
+                .andExpect(result -> DISH_MATCHER.matches(result, savedDish, Dish.class, "id"));
     }
 
     @Test
@@ -45,7 +43,7 @@ public class AdminDishControllerTest extends AbstractControllerTest {
                         .content(writeValue(updatedDish)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        matches(dishService.getFromRestaurant(BURGER_KING_ID, BURGER_ID), updatedDish, "restaurant");
+        DISH_MATCHER.matches(dishService.getFromRestaurant(BURGER_KING_ID, BURGER_ID), updatedDish);
     }
 
     /*@Test

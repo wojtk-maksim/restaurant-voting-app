@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ru.javaops.restaurantvoting.model.Lunch;
+import ru.javaops.restaurantvoting.service.LunchService;
 import ru.javaops.restaurantvoting.service.VoteService;
 import ru.javaops.restaurantvoting.to.lunch.LunchWithVotersTo;
+import ru.javaops.restaurantvoting.util.validation.restaurant.AvailableRestaurant;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,8 +27,16 @@ public class VoteController {
 
     private VoteService voteService;
 
+    private LunchService lunchService;
+
+    @GetMapping("/admin/{date}")
+    public List<Lunch> getAllOnDate(@PathVariable LocalDate date) {
+        log.info("get all on date {}", date);
+        return lunchService.getAllOnDate(date);
+    }
+
     @GetMapping("/{date}")
-    public List<LunchWithVotersTo> getOffersOnDate(@PathVariable LocalDate date) {
+    public List<LunchWithVotersTo> getOffersOnDate(@PathVariable LocalDate date, @AuthenticationPrincipal AuthUser authUser) {
         log.info("get all on date {}", date);
         return voteService.getOffersOnDate(date);
     }
@@ -33,10 +44,10 @@ public class VoteController {
     @PostMapping("/vote")
     public void vote(@RequestBody SimpleVote simpleVote, @AuthenticationPrincipal AuthUser authUser) {
         log.info("vote on {} for {} ", simpleVote.date(), simpleVote.restaurantId());
-        voteService.vote(simpleVote.date(), authUser.getUser(), simpleVote.restaurantId());
+        voteService.vote(simpleVote.date(), authUser.getUser().getId(), simpleVote.restaurantId());
     }
 
-    public record SimpleVote(LocalDate date, long restaurantId) {
+    public record SimpleVote(LocalDate date, @AvailableRestaurant Long restaurantId) {
     }
 
 }

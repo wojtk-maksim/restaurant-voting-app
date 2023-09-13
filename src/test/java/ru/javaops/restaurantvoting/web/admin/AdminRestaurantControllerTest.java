@@ -1,5 +1,6 @@
 package ru.javaops.restaurantvoting.web.admin;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithUserDetails;
@@ -9,14 +10,12 @@ import ru.javaops.restaurantvoting.repository.RestaurantRepository;
 import ru.javaops.restaurantvoting.service.RestaurantService;
 import ru.javaops.restaurantvoting.web.AbstractControllerTest;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.RestaurantTestData.*;
-import static ru.javaops.restaurantvoting.TestUtil.*;
 import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
 import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.admin.AdminRestaurantController.ADMIN_RESTAURANTS_URL;
@@ -29,6 +28,9 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
     @Autowired
     private RestaurantService restaurantService;
 
+    @Autowired
+    private EntityManager em;
+
     @Test
     @WithUserDetails(ADMIN_EMAIL)
     void getAll() throws Exception {
@@ -37,7 +39,7 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
                 .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("enabled")))
-                .andExpect(result -> matches(parseObjects(result, Restaurant[].class), restaurants));
+                .andExpect(result -> RESTAURANT_MATCHER.matches(result, restaurants, Restaurant[].class));
     }
 
     @Test
@@ -47,7 +49,7 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, Restaurant.class), burgerKing));
+                .andExpect(result -> RESTAURANT_MATCHER.matches(result, burgerKing, Restaurant.class));
     }
 
     @Test
@@ -59,7 +61,7 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, Restaurant.class), savedRestaurant, "id"));
+                .andExpect(result -> RESTAURANT_MATCHER.matches(result, savedRestaurant, Restaurant.class, "id"));
     }
 
     @Test
@@ -70,7 +72,7 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
                         .content(writeValue(newRestaurant)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        matches(restaurantService.get(BURGER_KING_ID), updatedRestaurant, "dishes");
+        RESTAURANT_MATCHER.matches(restaurantService.get(BURGER_KING_ID), updatedRestaurant);
     }
 
     @Test
@@ -79,7 +81,7 @@ public class AdminRestaurantControllerTest extends AbstractControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID))
                 .andDo(print())
                 .andExpect(status().isOk());
-        assertFalse(restaurantRepository.findById(BURGER_KING_ID).isPresent());
+        assertTrue(restaurantService.get(BURGER_KING_ID).isDeleted());
     }
 
 }

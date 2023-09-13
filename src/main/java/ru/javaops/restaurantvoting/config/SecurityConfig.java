@@ -11,15 +11,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import ru.javaops.restaurantvoting.error.DeletedUserException;
 import ru.javaops.restaurantvoting.model.Role;
 import ru.javaops.restaurantvoting.model.User;
 import ru.javaops.restaurantvoting.repository.UserRepository;
 import ru.javaops.restaurantvoting.web.AuthUser;
+
+import static ru.javaops.restaurantvoting.util.UserUtil.*;
 
 @Configuration
 @EnableWebSecurity
@@ -40,11 +40,11 @@ public class SecurityConfig {
     UserDetailsService userDetailsService() {
         return email -> {
             log.debug("authenticating {}", email);
-            User user = userRepository.getByEmail(email.toLowerCase())
-                    .orElseThrow(() -> new UsernameNotFoundException("User '" + email + "' not found"));
-            if (user.isDeleted()) {
-                throw new DeletedUserException();
-            }
+            email = email.toLowerCase();
+            User user = userRepository.getByEmail(email);
+            checkUserExists(user, email);
+            checkBanned(user);
+            checkUserDeleted(user, user.getId());
             return new AuthUser(user);
         };
     }
@@ -61,4 +61,5 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
+
 }

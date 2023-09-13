@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.RestaurantTestData.*;
-import static ru.javaops.restaurantvoting.TestUtil.*;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
 import static ru.javaops.restaurantvoting.web.user.RestaurantController.RESTAURANTS_URL;
 
@@ -25,8 +24,8 @@ public class RestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertFalse(result.getResponse().getContentAsString().contains("enabled")))
-                .andExpect(result -> matches(parseObject(result, Restaurant.class), burgerKing, "enabled"));
+                .andExpect(result -> assertFalse(result.getResponse().getContentAsString().contains("deleted")))
+                .andExpect(result -> RESTAURANT_MATCHER.matches(result, burgerKing, Restaurant.class));
     }
 
     @Test
@@ -36,8 +35,9 @@ public class RestaurantControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertFalse(result.getResponse().getContentAsString().contains("enabled")))
-                .andExpect(result -> matches(parseObjects(result, Restaurant[].class), availableRestaurants, "enabled"));
+                .andExpect(result -> assertFalse(result.getResponse().getContentAsString().contains("deleted")))
+                .andExpect(result -> RESTAURANT_MATCHER.matches(result, restaurantsExceptDeleted, Restaurant[].class));
     }
+
 }
 

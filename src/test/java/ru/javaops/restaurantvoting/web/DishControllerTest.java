@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.DishTestData.*;
 import static ru.javaops.restaurantvoting.RestaurantTestData.BURGER_KING_ID;
-import static ru.javaops.restaurantvoting.TestUtil.*;
 import static ru.javaops.restaurantvoting.UserTestData.USER_EMAIL;
 import static ru.javaops.restaurantvoting.web.user.DishController.DISHES_URL;
 
@@ -29,7 +28,7 @@ public class DishControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObjects(result, Dish[].class), burgerKingDishes, "restaurant"));
+                .andExpect(result -> DISH_MATCHER.matches(result, burgerKingDishesExceptDeleted, Dish[].class));
     }
 
     @Test
@@ -39,7 +38,7 @@ public class DishControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> matches(parseObject(result, Dish.class), burger, "restaurant"));
+                .andExpect(result -> DISH_MATCHER.matches(result, burger, Dish.class));
     }
 
 }
