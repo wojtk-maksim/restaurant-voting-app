@@ -6,4 +6,5 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Transactional
 public abstract class AbstractTest {
+
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javaops.restaurantvoting.model.Lunch;
+import ru.javaops.restaurantvoting.model.Restaurant;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,10 +14,10 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface LunchRepository extends JpaRepository<Lunch, Long> {
 
-    @Query("SELECT l FROM Lunch l JOIN FETCH l.restaurant JOIN FETCH l.dishes WHERE l.restaurant.id=:restaurantId AND l.date=:date")
-    Lunch getFromRestaurantOnDate(Long restaurantId, LocalDate date);
+    @Query("SELECT l FROM Lunch l JOIN FETCH l.restaurant JOIN FETCH l.dishes WHERE l.restaurant=:restaurant AND l.date=:date")
+    Lunch getFromRestaurantOnDate(Restaurant restaurant, LocalDate date);
 
-    @Query("SELECT l FROM Lunch l JOIN FETCH l.restaurant JOIN FETCH l.dishes WHERE l.date=:date")
+    @Query("FROM Lunch l JOIN FETCH l.dishes WHERE l.date=:date")
     List<Lunch> getAllOnDate(LocalDate date);
 
     @Modifying
@@ -32,5 +33,7 @@ public interface LunchRepository extends JpaRepository<Lunch, Long> {
             WHERE r.id=:restaurantId AND l.date=:date AND l.restaurant=r
             """)
     Tuple getVoteValidationTuple(Long restaurantId, LocalDate date, Long userId);
+
+    boolean existsByDateAndRestaurant(LocalDate date, Restaurant restaurant);
 
 }

@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.javaops.restaurantvoting.util.Views.Admin;
 import ru.javaops.restaurantvoting.util.Views.Public;
 
 @Entity
@@ -17,21 +16,16 @@ import ru.javaops.restaurantvoting.util.Views.Public;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Dish extends NamedEntity implements Enablable, Deletable {
+public class Dish extends NamedDeletableEntity {
 
-    @Column(name = "enabled", nullable = false, columnDefinition = "bool default true")
-    @JsonView(Public.class)
-    protected boolean enabled = true;
     @Column(name = "price", nullable = false)
     @JsonView(Public.class)
     private Integer price;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
     @JsonIgnore
     private Restaurant restaurant;
-    @Column(name = "deleted", nullable = false, columnDefinition = "bool default false")
-    @JsonView(Admin.class)
-    private boolean deleted;
 
     public Dish(Long id, String name, Integer price, Restaurant restaurant, boolean enabled, boolean deleted) {
         this.id = id;

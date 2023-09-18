@@ -1,6 +1,5 @@
 package ru.javaops.restaurantvoting.service;
 
-import jakarta.persistence.Tuple;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -10,18 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.javaops.restaurantvoting.model.Dish;
 import ru.javaops.restaurantvoting.model.Lunch;
 import ru.javaops.restaurantvoting.model.Restaurant;
-import ru.javaops.restaurantvoting.repository.DishRepository;
 import ru.javaops.restaurantvoting.repository.LunchRepository;
-import ru.javaops.restaurantvoting.repository.RestaurantRepository;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.javaops.restaurantvoting.util.LunchUtil.checkLunchExists;
-import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkDeadline;
+import static ru.javaops.restaurantvoting.util.ValidationUtil.checkDeadline;
+import static ru.javaops.restaurantvoting.util.ValidationUtil.checkLunchExists;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,103 +27,96 @@ import static ru.javaops.restaurantvoting.util.validation.ValidationUtil.checkDe
 @AllArgsConstructor
 public class LunchService {
 
-    private RestaurantService restaurantService;
-
-    private RestaurantRepository restaurantRepository;
-
     private LunchRepository lunchRepository;
 
-    private DishRepository dishRepository;
+    private RestaurantService restaurantService;
 
+    private DishService dishService;
 
-    public Lunch getFromRestaurantOnDate(Long restaurantId, LocalDate date) {
-        log.debug("get lunch from restaurant {} on {}", restaurantId, date);
-        Lunch lunch = lunchRepository.getFromRestaurantOnDate(restaurantId, date);
-        checkLunchExists(lunch, restaurantId, date);
-        return lunch;
+    public Lunch getFromRestaurantOnDate(Restaurant restaurant, LocalDate date) {
+        log.debug("get lunch from {} on {}", restaurant, date);
+        return getLunchIfExists(restaurant, date);
     }
 
     @Cacheable("lunches")
-    public List<Lunch> getAllOnDate(LocalDate date) {
-        log.debug("get all on {}", date);
-        return lunchRepository.getAllOnDate(date);
+    public Map<Long, Lunch> getAllOnDate(LocalDate date) {
+        log.debug("get all lunches on {}", date);
+        return lunchRepository.getAllOnDate(date).stream()
+                .collect(toMap(
+                        l -> l.getRestaurant().getId(),
+                        l -> l,
+                        (k, v) -> v,
+                        LinkedHashMap::new
+                ));
     }
 
     @Transactional
     @CacheEvict(value = "lunches", key = "#date", allEntries = true)
-    public void add(Long restaurantId, LocalDate date, LinkedHashSet<Long> dishIds) {
-        log.debug("add lunch to restaurant {} on {} with dishes {}", restaurantId, date, dishIds);
-
-        Tuple lunchValidationTuple = restaurantRepository.getLunchValidationTuple(restaurantId, date);
-
-        Restaurant restaurant = (Restaurant) lunchValidationTuple.get("restaurant");
-
+    public void add(Restaurant restaurant, LocalDate date, LinkedHashSet<Long> dishIds) {
+        log.debug("add lunch to {} on {} with dishes {}", restaurant, date, dishIds);
         checkDeadline(date, "add new lunch");
-
-        if (lunchValidationTuple.get("lunch") != null) {
-            throw new IllegalArgumentException("restaurant " + restaurantId + " already has lunch on " + date);
+        if (lunchRepository.existsByDateAndRestaurant(date, restaurant)) {
+            throw new IllegalArgumentException("lunch in " + restaurant + " on " + date + " is already provided");
         }
-
-        List<Dish> requestedDishes = getRequestedDishes(restaurantId, dishIds);
-
+        List<Dish> requestedDishes = getRequestedDishes(restaurant, dishIds);
         lunchRepository.save(new Lunch(date, restaurant, requestedDishes));
     }
 
     @Transactional
     @CacheEvict(value = "lunches", key = "#date", allEntries = true)
-    public void update(Long restaurantId, LocalDate date, LinkedHashSet<Long> dishIds) {
-        log.debug("update in restaurant {} on {} to new dishes{}", restaurantId, date, dishIds);
-
-        Lunch lunch = lunchRepository.getFromRestaurantOnDate(restaurantId, date);
-        checkLunchExists(lunch, restaurantId, date);
-
-        checkDeadline(date, "modify lunch");
-
-        List<Dish> requestedDishes = getRequestedDishes(restaurantId, dishIds);
-        lunch.setDishes(requestedDishes);
+    public void update(Restaurant restaurant, LocalDate date, LinkedHashSet<Long> dishIds) {
+        log.debug("update in {} on {} to new dishes {}", restaurant, date, dishIds);
+        Lunch lunch = getLunchIfExists(restaurant, date);
+        checkDeadline(date, "update lunch");
+        lunch.setDishes(
+                getRequestedDishes(restaurant, dishIds)
+        );
     }
 
     @Transactional
     @CacheEvict(value = "lunches", key = "#date", allEntries = true)
-    public void enable(Long restaurantId, LocalDate date, boolean enabled) {
-        log.debug(enabled ? "enable lunch in {} on {}" : "disable lunch in restaurant {} on {}", restaurantId, date);
-        Lunch lunch = lunchRepository.getFromRestaurantOnDate(restaurantId, date);
-        checkLunchExists(lunch, restaurantId, date);
+    public void enable(Restaurant restaurant, LocalDate date, boolean enabled) {
+        log.debug(enabled ? "enable lunch in {} on {}" : "disable lunch in {} on {}", restaurant, date);
+        Lunch lunch = getLunchIfExists(restaurant, date);
         lunch.setEnabled(enabled);
     }
 
     @Transactional
     @CacheEvict(value = "lunches", key = "#date", allEntries = true)
-    public void delete(Long restaurantId, LocalDate date) {
-        log.debug("delete lunch from {} on {}", restaurantId, date);
-        Lunch lunch = lunchRepository.getFromRestaurantOnDate(restaurantId, date);
-        checkLunchExists(lunch, restaurantId, date);
-        lunchRepository.delete(lunch);
+    public void delete(Restaurant restaurant, LocalDate date) {
+        log.debug("delete lunch from {} on {}", restaurant, date);
+        lunchRepository.delete(getLunchIfExists(restaurant, date));
+    }
+
+    private Lunch getLunchIfExists(Restaurant restaurant, LocalDate date) {
+        Lunch lunch = lunchRepository.getFromRestaurantOnDate(restaurant, date);
+        checkLunchExists(lunch, restaurant, date);
+        return lunch;
     }
 
     /*
      * Retrieves dishes from restaurant by their IDs.
      * Checks if dishes are valid (number of retrieved dishes must match number of requested dishes).
-     * Checks if dishes are available (it is forbidden to add to lunch unavailable dishes).
+     * Checks if dishes are available (it is forbidden to add to lunch unavailable or deleted dishes).
      */
-    private List<Dish> getRequestedDishes(Long restaurantId, LinkedHashSet<Long> dishIds) {
-        Map<Long, Dish> dishes = dishRepository.getByIds(restaurantId, dishIds).stream()
-                .collect(toMap(Dish::getId, d -> d));
-
-        int numberOfDishesToAdd = dishIds.size();
-        if (dishes.size() != numberOfDishesToAdd) {
+    private List<Dish> getRequestedDishes(Restaurant restaurant, LinkedHashSet<Long> dishIds) {
+        Map<Long, Dish> dishesFromRestaurant = dishService.getAllFromRestaurant(restaurant);
+        List<Dish> actualDishes = dishIds.stream()
+                .map(dishesFromRestaurant::get)
+                .toList();
+        int numberOfRequestedDishes = dishIds.size();
+        if (actualDishes.size() != numberOfRequestedDishes) {
             throw new IllegalArgumentException("invalid dishes");
         }
 
-        List<Dish> dishesOrderedAsRequested = dishIds.stream()
-                .map(dishes::get)
-                .filter(Dish::isEnabled)
+        List<Dish> availableDishes = actualDishes.stream()
+                .filter(d -> d != null && d.isEnabled() && !d.isDeleted())
                 .toList();
-        if (dishesOrderedAsRequested.size() != numberOfDishesToAdd) {
+        if (availableDishes.size() != numberOfRequestedDishes) {
             throw new IllegalArgumentException("you can't add unavailable dishes to lunch");
         }
 
-        return dishesOrderedAsRequested;
+        return availableDishes;
     }
 
 }

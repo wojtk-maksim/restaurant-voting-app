@@ -7,4 +7,5 @@ public class Views {
 
     public static class Admin extends Public {
     }
+
 }

@@ -1,11 +1,12 @@
 package ru.javaops.restaurantvoting.error;
 
-import static ru.javaops.restaurantvoting.util.UserUtil.USER;
+import org.springframework.security.core.AuthenticationException;
+import ru.javaops.restaurantvoting.model.User;
 
-public class BannedUserException extends RuntimeException {
+public class BannedUserException extends AuthenticationException {
 
-    public BannedUserException(Long id) {
-        super(USER + " " + id + " is banned");
+    public BannedUserException(User user) {
+        super(user + " is banned");
     }
 
 }

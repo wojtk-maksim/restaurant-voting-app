@@ -26,7 +26,7 @@ public class RestaurantServiceTest extends AbstractTest {
 
     @Test
     void get() {
-        RESTAURANT_MATCHER.matches(restaurantService.get(BURGER_KING_ID), burgerKing);
+        RESTAURANT_MATCHER.matches(restaurantService.get(BURGER_KING_ID), getBurgerKing());
     }
 
     @Test
@@ -36,19 +36,19 @@ public class RestaurantServiceTest extends AbstractTest {
 
     @Test
     void update() {
-        restaurantService.update(BURGER_KING_ID, newRestaurant);
+        restaurantService.update(getBurgerKing(), newRestaurant);
         RESTAURANT_MATCHER.matches(restaurantService.get(BURGER_KING_ID), updatedRestaurant);
     }
 
     @Test
     void enable() {
-        restaurantService.enable(BURGER_KING_ID, false);
+        restaurantService.enable(getBurgerKing(), false);
         assertFalse(restaurantRepository.get(BURGER_KING_ID).isEnabled());
     }
 
     @Test
     void delete() {
-        restaurantService.delete(BURGER_KING_ID);
+        restaurantService.delete(getBurgerKing());
         assertTrue(restaurantRepository.get(BURGER_KING_ID).isDeleted());
     }
 

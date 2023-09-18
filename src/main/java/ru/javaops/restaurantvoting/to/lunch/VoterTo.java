@@ -1,4 +1,4 @@
 package ru.javaops.restaurantvoting.to.lunch;
 
-public record VoterTo(long id, String name, Long restaurantId) {
+public record VoterTo(Long id, String name, Long lunchId) {
 }

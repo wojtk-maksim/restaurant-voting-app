@@ -28,12 +28,12 @@ public class UserServiceTest extends AbstractTest {
 
     @Test
     void register() {
-        USER_MATCHER.matches(userService.register(newUserTo), newUser, "id");
+        USER_MATCHER.matches(userService.register(NEW_PROFILE), newUser, "id");
     }
 
     @Test
     void updateProfile() {
-        USER_MATCHER.matches(userService.updateProfile(USER_ID, updatedUserTo), updatedUser);
+        USER_MATCHER.matches(userService.updateAccount(getUser(), UPDATED_PROFILE), updatedUser);
     }
 
     @Test

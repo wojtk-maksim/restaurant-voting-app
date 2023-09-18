@@ -17,12 +17,11 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Lunch extends BaseEntity implements Enablable {
+public class Lunch extends EnablableEntity {
 
-    @Column(name = "enabled", nullable = false, columnDefinition = "bool default true")
-    protected boolean enabled = true;
     @Column(name = "date", nullable = false)
     private LocalDate date;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "restaurant_id",
@@ -32,7 +31,8 @@ public class Lunch extends BaseEntity implements Enablable {
                     foreignKeyDefinition = "FOREIGN KEY(restaurant_id) REFERENCES Restaurant(id) ON DELETE CASCADE"
             ))
     private Restaurant restaurant;
-    @ManyToMany(fetch = FetchType.EAGER)
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "lunch_item",
             joinColumns = @JoinColumn(name = "lunch_id", referencedColumnName = "id"),

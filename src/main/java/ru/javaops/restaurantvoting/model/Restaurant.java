@@ -1,15 +1,15 @@
 package ru.javaops.restaurantvoting.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import ru.javaops.restaurantvoting.util.Views.Admin;
-import ru.javaops.restaurantvoting.util.Views.Public;
 
 import java.util.List;
 
@@ -18,18 +18,12 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Restaurant extends NamedEntity implements Enablable, Deletable {
+public class Restaurant extends NamedDeletableEntity {
 
-    @Column(name = "enabled", nullable = false, columnDefinition = "bool default true")
-    @JsonView(Public.class)
-    protected boolean enabled = true;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "restaurant")
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private List<Dish> dishes;
-    @Column(name = "deleted", nullable = false, columnDefinition = "bool default false")
-    @JsonView(Admin.class)
-    private boolean deleted;
 
     public Restaurant(Long id, String name, boolean enabled, boolean deleted) {
         this.id = id;

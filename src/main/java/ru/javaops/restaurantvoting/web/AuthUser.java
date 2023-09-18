@@ -11,8 +11,13 @@ public class AuthUser extends org.springframework.security.core.userdetails.User
     private User user;
 
     public AuthUser(User user) {
-        super(user.getEmail(), user.getPassword(), user.getRoles());
+        super(user.getEmail(), user.getPassword(), user.getRole().getAuthorities());
         this.user = user;
+    }
+
+    @Override
+    public String toString() {
+        return user.toString();
     }
 
 }

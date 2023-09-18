@@ -38,4 +38,5 @@ public class JsonUtil {
             throw new IllegalArgumentException("can't convert to json");
         }
     }
+
 }

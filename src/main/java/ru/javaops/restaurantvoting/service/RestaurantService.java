@@ -8,14 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.repository.RestaurantRepository;
-import ru.javaops.restaurantvoting.to.restaurant.NewRestaurantTo;
+import ru.javaops.restaurantvoting.to.SimpleRestaurant;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
-import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantDeleted;
-import static ru.javaops.restaurantvoting.util.RestaurantUtil.checkRestaurantExists;
+import static ru.javaops.restaurantvoting.util.ValidationUtil.checkRestaurantExists;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,40 +45,33 @@ public class RestaurantService {
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
-    public Restaurant add(NewRestaurantTo newRestaurant) {
+    public Restaurant add(SimpleRestaurant newRestaurant) {
         log.debug("add new {}", newRestaurant);
-        return restaurantRepository.save(
-                new Restaurant(null, newRestaurant.getName())
-        );
+        return restaurantRepository.save(new Restaurant(newRestaurant.getName()));
     }
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
-    public void update(Long id, NewRestaurantTo newData) {
-        log.debug("update {} to {}", id, newData);
-        Restaurant restaurant = restaurantRepository.get(id);
-        checkRestaurantExists(restaurant, id);
-        checkRestaurantDeleted(restaurant);
-        restaurant.setName(newData.getName());
+    public void update(Restaurant restaurant, SimpleRestaurant updatedRestaurant) {
+        log.debug("update {} to {}", restaurant, updatedRestaurant);
+        restaurant.setName(updatedRestaurant.getName());
+        restaurantRepository.save(restaurant);
     }
 
     @CacheEvict(value = "restaurants", allEntries = true)
     @Transactional
-    public void enable(long id, boolean enabled) {
-        log.debug(enabled ? "enable {}" : "disable {}", id);
-        Restaurant restaurant = restaurantRepository.get(id);
-        checkRestaurantExists(restaurant, id);
-        checkRestaurantDeleted(restaurant);
+    public void enable(Restaurant restaurant, boolean enabled) {
+        log.debug(enabled ? "enable {}" : "disable {}", restaurant);
         restaurant.setEnabled(enabled);
+        restaurantRepository.save(restaurant);
     }
 
     @Transactional
     @CacheEvict(value = "restaurants", allEntries = true)
-    public void delete(long id) {
-        log.debug("delete {}", id);
-        Restaurant restaurant = restaurantRepository.get(id);
-        checkRestaurantExists(restaurant, id);
+    public void delete(Restaurant restaurant) {
+        log.debug("delete {}", restaurant);
         restaurant.setDeleted(true);
+        restaurantRepository.save(restaurant);
     }
 
 }

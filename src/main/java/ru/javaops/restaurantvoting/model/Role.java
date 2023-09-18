@@ -1,15 +1,24 @@
 package ru.javaops.restaurantvoting.model;
 
-import org.springframework.security.core.GrantedAuthority;
+import lombok.Getter;
+import ru.javaops.restaurantvoting.config.Access;
 
-public enum Role implements GrantedAuthority {
+import java.util.EnumSet;
+import java.util.Set;
 
-    USER,
-    ADMIN,
-    SUPER_ADMIN;
+import static ru.javaops.restaurantvoting.config.Access.*;
 
-    @Override
-    public String getAuthority() {
-        return "ROLE_" + name();
+@Getter
+public enum Role {
+
+    USER(EnumSet.of(PUBLIC_ACCESS)),
+    ADMIN(EnumSet.of(PUBLIC_ACCESS, ADMIN_ACCESS)),
+    SUPER_ADMIN(EnumSet.of(PUBLIC_ACCESS, ADMIN_ACCESS, SUPER_ADMIN_ACCESS));
+
+    private final Set<Access> authorities;
+
+    Role(Set<Access> authorities) {
+        this.authorities = authorities;
     }
+
 }

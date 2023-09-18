@@ -5,21 +5,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
 @Table(
         name = "vote",
         uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"}, name = "uk_date_user"))
+@IdClass(Vote.VoteId.class)
 @Getter
 @Setter
 @NoArgsConstructor
-public class Vote extends BaseEntity {
+public class Vote {
 
+    @Id
     @Column(name = "date", nullable = false)
     @Temporal(TemporalType.DATE)
     private LocalDate date;
 
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "user_id",
@@ -40,15 +44,18 @@ public class Vote extends BaseEntity {
             ))
     private Lunch lunch;
 
-    public Vote(Long id, LocalDate date, User user, Lunch lunch) {
-        this.id = id;
+    public Vote(LocalDate date, User user, Lunch lunch) {
         this.date = date;
         this.user = user;
         this.lunch = lunch;
     }
 
-    public Vote(LocalDate date, User user, Lunch lunch) {
-        this(null, date, user, lunch);
+    public static class VoteId implements Serializable {
+
+        private LocalDate date;
+
+        private User user;
+
     }
 
 }

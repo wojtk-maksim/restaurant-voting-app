@@ -1,19 +1,9 @@
-INSERT INTO USERS (NAME, EMAIL, PASSWORD, ENABLED, DELETED)
-VALUES ('user', 'user@yandex.ru', '{noop}userPassword', TRUE, FALSE),
-       ('admin', 'admin@gmail.com', '{noop}adminPassword', TRUE, FALSE),
-       ('superAdmin', 'super.admin@gmail.com', '{noop}superAdminPassword', TRUE, FALSE),
-       ('banned', 'banned@gmail.com', '{noop}bannedPassword', FALSE, FALSE),
-       ('deleted', 'deleted@gmail.com', '{noop}deletedPassword', TRUE, TRUE);
-
-INSERT INTO USER_ROLE (USER_ID, ROLE)
-VALUES (1, 'USER'),
-       (2, 'USER'),
-       (2, 'ADMIN'),
-       (3, 'USER'),
-       (3, 'ADMIN'),
-       (3, 'SUPER_ADMIN'),
-       (4, 'USER'),
-       (5, 'USER');
+INSERT INTO USERS (NAME, EMAIL, PASSWORD, ROLE, ENABLED, DELETED)
+VALUES ('user', 'user@yandex.ru', '{noop}userPassword', 'USER', TRUE, FALSE),
+       ('admin', 'admin@gmail.com', '{noop}adminPassword', 'ADMIN', TRUE, FALSE),
+       ('superAdmin', 'super.admin@gmail.com', '{noop}superAdminPassword', 'SUPER_ADMIN', TRUE, FALSE),
+       ('banned', 'banned@gmail.com', '{noop}bannedPassword', 'USER', FALSE, FALSE),
+       ('deleted', 'deleted@gmail.com', '{noop}deletedPassword', 'USER', TRUE, TRUE);
 
 INSERT INTO RESTAURANT (NAME, ENABLED, DELETED)
 VALUES ('Burger King', TRUE, FALSE),
