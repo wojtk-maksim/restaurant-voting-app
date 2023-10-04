@@ -5,7 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
-import ru.javaops.restaurantvoting.util.Views;
+import ru.javaops.restaurantvoting.Enablable;
+import ru.javaops.restaurantvoting.Views;
 
 @MappedSuperclass
 @Getter

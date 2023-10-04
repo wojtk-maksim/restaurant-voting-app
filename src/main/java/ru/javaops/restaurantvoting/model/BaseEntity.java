@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.javaops.restaurantvoting.util.Views.Public;
+import ru.javaops.restaurantvoting.HasId;
+import ru.javaops.restaurantvoting.Views.Public;
 
 @MappedSuperclass
 @Access(AccessType.FIELD)
@@ -14,7 +15,7 @@ import ru.javaops.restaurantvoting.util.Views.Public;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class BaseEntity {
+public abstract class BaseEntity implements HasId {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +36,6 @@ public abstract class BaseEntity {
     @Override
     public int hashCode() {
         return id == null ? 0 : id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + ": " + id;
     }
 
 }

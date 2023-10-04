@@ -1,21 +1,27 @@
 package ru.javaops.restaurantvoting.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.javaops.restaurantvoting.util.Views.Public;
+import ru.javaops.restaurantvoting.HasIdAndEmail;
+import ru.javaops.restaurantvoting.Views.Public;
 
 import java.util.Date;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = @UniqueConstraint(columnNames = "name", name = "uk_user_name")
+)
 @Getter
 @Setter
 @NoArgsConstructor
-public class User extends NamedDeletableEntity {
+@JsonPropertyOrder({"id", "name", "email", "registered", "role", "enabled", "deleted"})
+public class User extends NamedEnablableDeletableEntity implements HasIdAndEmail {
 
     @Column(name = "email", nullable = false, unique = true)
     @JsonView(Public.class)
@@ -58,7 +64,7 @@ public class User extends NamedDeletableEntity {
 
     @Override
     public String toString() {
-        return "User {id: " + id + ", name: " + name + ", email: " + email + "}";
+        return "[id = " + id + ", name = '" + name + "', email = '" + email + "']";
     }
 
 }

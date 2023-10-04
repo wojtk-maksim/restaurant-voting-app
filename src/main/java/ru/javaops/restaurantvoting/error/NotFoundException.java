@@ -1,9 +1,14 @@
 package ru.javaops.restaurantvoting.error;
 
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends RuntimeException implements HasUri {
 
-    public NotFoundException(String object) {
-        super(object + " not found");
+    public NotFoundException(String msg) {
+        super(msg);
+    }
+
+    @Override
+    public String getProblemPath() {
+        return "/not-found";
     }
 
 }

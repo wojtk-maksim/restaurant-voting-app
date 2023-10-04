@@ -6,34 +6,29 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.javaops.restaurantvoting.model.Lunch;
-import ru.javaops.restaurantvoting.model.Restaurant;
 import ru.javaops.restaurantvoting.service.LunchService;
-import ru.javaops.restaurantvoting.web.AbstractRestaurantController;
+import ru.javaops.restaurantvoting.to.lunch.LunchTo;
 
 import java.time.LocalDate;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static ru.javaops.restaurantvoting.util.ValidationUtil.checkDeleted;
-import static ru.javaops.restaurantvoting.web.UrlData.API;
-import static ru.javaops.restaurantvoting.web.UrlData.LUNCHES;
+import static ru.javaops.restaurantvoting.web.UrlData.API_PATH;
+import static ru.javaops.restaurantvoting.web.UrlData.FULL_LUNCHES_PATH;
 
 @RestController
 @RequestMapping(value = LunchController.LUNCHES_URL, produces = APPLICATION_JSON_VALUE)
-@Slf4j
 @AllArgsConstructor
-public class LunchController extends AbstractRestaurantController {
+@Slf4j
+public class LunchController {
 
-    public static final String LUNCHES_URL = API + LUNCHES;
+    public static final String LUNCHES_URL = API_PATH + FULL_LUNCHES_PATH;
 
-    private LunchService lunchService;
+    private final LunchService lunchService;
 
     @GetMapping("/{date}")
-    public Lunch getFromRestaurantOnDate(@PathVariable Long restaurantId, @PathVariable LocalDate date) {
-        log.info("get from restaurant {} on {}", restaurantId, date);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        checkDeleted(restaurant);
-        return lunchService.getFromRestaurantOnDate(restaurant, date);
+    public LunchTo getFromRestaurantOnDate(@PathVariable Long restaurantId, @PathVariable LocalDate date) {
+        log.info("Get lunch from restaurant {} on {}", restaurantId, date);
+        return lunchService.getFromRestaurantOnDate(restaurantId, date).getRestaurantItem();
     }
 
 }

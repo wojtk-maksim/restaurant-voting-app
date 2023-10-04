@@ -1,12 +1,15 @@
 package ru.javaops.restaurantvoting.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.Persistable;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -16,7 +19,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Vote {
+public class Vote implements Persistable<Vote.VoteId> {
 
     @Id
     @Column(name = "date", nullable = false)
@@ -44,17 +47,50 @@ public class Vote {
             ))
     private Lunch lunch;
 
+    @Transient
+    // For Hibernate to know that this Vote is not new.
+    private boolean repeatedVote;
+
     public Vote(LocalDate date, User user, Lunch lunch) {
         this.date = date;
         this.user = user;
         this.lunch = lunch;
     }
 
+    @Override
+    public VoteId getId() {
+        return new VoteId(date, user);
+    }
+
+    @Override
+    public boolean isNew() {
+        return !repeatedVote;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VoteId implements Serializable {
 
         private LocalDate date;
 
         private User user;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof VoteId that)) {
+                return false;
+            }
+            return date != null && user != null &&
+                    date.equals(that.date) && user.equals(that.user);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(date, user);
+        }
 
     }
 

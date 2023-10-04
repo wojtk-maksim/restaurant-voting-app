@@ -8,12 +8,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
+// https://sabljakovich.medium.com/adding-basic-auth-authorization-option-to-openapi-swagger-documentation-java-spring-95abbede27e9
 @Configuration
-//https://sabljakovich.medium.com/adding-basic-auth-authorization-option-to-openapi-swagger-documentation-java-spring-95abbede27e9
 @SecurityScheme(
-        name = "basicAuth",
+        name = "JWT",
         type = SecuritySchemeType.HTTP,
-        scheme = "basic"
+        scheme = "JWT"
 )
 @OpenAPIDefinition(
         info = @Info(
@@ -22,13 +22,15 @@ import org.springframework.context.annotation.Configuration;
                 description = """
                         Restaurant Voting application
                         <p><b>Test credentials:</b><br>
-                        - user@yandex.ru / password<br>
-                        - admin@gmail.com / admin<br>
-                        - guest@gmail.com / guest</p>
+                        - user@yandex.ru / userPassword<br>
+                        - admin@gmail.com / adminPassword<br>
+                        - super.admin@gmail.com / superAdminPassword<br>
+                        - deleted@gmail.com / deletedPassword</p>
+                        - banned@gmail.com / bannedPassword</p>
                         """,
-                contact = @Contact(name = "Maksim Wojtk")
+                contact = @Contact(name = "Maksim Wojtk", email = "wojtk.maksim@gmail.com")
         ),
-        security = @SecurityRequirement(name = "basicAuth")
+        security = @SecurityRequirement(name = "JWT")
 )
 public class OpenApiConfig {
 }

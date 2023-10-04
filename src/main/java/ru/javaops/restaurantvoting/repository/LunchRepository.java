@@ -5,8 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
+import ru.javaops.restaurantvoting.model.Dish;
 import ru.javaops.restaurantvoting.model.Lunch;
-import ru.javaops.restaurantvoting.model.Restaurant;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,26 +14,37 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface LunchRepository extends JpaRepository<Lunch, Long> {
 
-    @Query("SELECT l FROM Lunch l JOIN FETCH l.restaurant JOIN FETCH l.dishes WHERE l.restaurant=:restaurant AND l.date=:date")
-    Lunch getFromRestaurantOnDate(Restaurant restaurant, LocalDate date);
+    @Query("FROM Lunch l WHERE l.date=:date AND l.restaurant.id=:restaurantId")
+    Lunch getFromRestaurantOnDate(Long restaurantId, LocalDate date);
 
-    @Query("FROM Lunch l JOIN FETCH l.dishes WHERE l.date=:date")
-    List<Lunch> getAllOnDate(LocalDate date);
+    @Query("SELECT l FROM Lunch l WHERE l.date=:date ORDER BY l.restaurant.deleted, l.restaurant.enabled DESC, l.enabled DESC")
+    List<Lunch> getAllOnDateForCache(LocalDate date);
+
+    @Query("""
+            SELECT r AS restaurant, l AS lunch FROM Restaurant r LEFT JOIN Lunch l ON l.date=:date AND l.restaurant=r
+            WHERE r.id=:restaurantId
+            """)
+    Tuple getLunchValidationTuple(Long restaurantId, LocalDate date);
+
+    @Query("""
+            SELECT r AS restaurant, l AS lunch FROM Restaurant r
+            LEFT JOIN Lunch l ON l.date=:date AND l.restaurant=r WHERE r.id IN :restaurantIds
+            """)
+    List<Tuple> getBatchLunchValidationTuples(LocalDate date, List<Long> restaurantIds);
 
     @Modifying
     @Transactional
-    @Query("DELETE FROM Lunch l WHERE l.restaurant.id=:restaurantId AND l.date=:date")
-    int delete(Long restaurantId, LocalDate date);
+    @Query("UPDATE Lunch l SET l.enabled=:enabled WHERE l.date=:date AND l.restaurant.id=:restaurantId")
+    Integer enable(Long restaurantId, LocalDate date, boolean enabled);
 
-    @Query("""
-            SELECT l AS lunch, v AS vote, u AS user FROM Lunch l JOIN FETCH l.dishes
-            LEFT JOIN User u ON u.id=:userId
-            LEFT JOIN Restaurant r ON l.restaurant=r
-            LEFT JOIN Vote v ON v.date=:date AND v.user=u
-            WHERE r.id=:restaurantId AND l.date=:date AND l.restaurant=r
-            """)
-    Tuple getVoteValidationTuple(Long restaurantId, LocalDate date, Long userId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE Lunch l SET l.dishes=:dishes WHERE l.date=:date AND l.restaurant.id=:restaurantId")
+    Integer update(Long restaurantId, LocalDate date, List<Dish> dishes);
 
-    boolean existsByDateAndRestaurant(LocalDate date, Restaurant restaurant);
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Lunch l WHERE l.date=:date AND l.restaurant.id=:restaurantId")
+    Integer delete(Long restaurantId, LocalDate date);
 
 }

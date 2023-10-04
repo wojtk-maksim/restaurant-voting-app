@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public class JsonUtil {
 
-    private static ObjectMapper mapper;
+    public static ObjectMapper mapper;
 
     public static void setObjectMapper(ObjectMapper mapper) {
         JsonUtil.mapper = mapper;

@@ -1,17 +1,16 @@
 package ru.javaops.restaurantvoting.web.admin_access;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import ru.javaops.restaurantvoting.model.Dish;
-import ru.javaops.restaurantvoting.model.Restaurant;
-import ru.javaops.restaurantvoting.to.NewDishTo;
-import ru.javaops.restaurantvoting.util.Views.Admin;
-import ru.javaops.restaurantvoting.web.AbstractDishController;
+import ru.javaops.restaurantvoting.config.AuthToken;
+import ru.javaops.restaurantvoting.service.DishService;
+import ru.javaops.restaurantvoting.to.DishTo;
+import ru.javaops.restaurantvoting.web.validation.DishUniqueNameValidator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -20,54 +19,71 @@ import static ru.javaops.restaurantvoting.web.UrlData.*;
 @RestController
 @RequestMapping(value = AdminDishController.ADMIN_DISHES_URL, produces = APPLICATION_JSON_VALUE)
 @Slf4j
-public class AdminDishController extends AbstractDishController {
+@AllArgsConstructor
+public class AdminDishController {
 
-    public static final String ADMIN_DISHES_URL = API + ADMIN + DISHES;
+    public static final String ADMIN_DISHES_URL = API_PATH + ADMIN_PATH + FULL_DISHES_PATH;
+
+    private DishService dishService;
+
+    private DishUniqueNameValidator dishValidator;
+
+    @InitBinder
+    public void init(WebDataBinder binder) {
+        binder.addValidators(dishValidator);
+    }
 
     @GetMapping
-    @JsonView(Admin.class)
-    public List<Dish> getAll(@PathVariable Long restaurantId) {
-        log.info("get all from restaurant {}", restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        return new ArrayList<>(dishService.getAllFromRestaurant(restaurant).values());
+    public List<DishTo> getAll(@PathVariable Long restaurantId) {
+        log.info("Get all dishes from restaurant {}", restaurantId);
+        return dishService.getAllFromRestaurant(restaurantId).getRestaurantItem();
     }
 
     @GetMapping("/{id}")
-    @JsonView(Admin.class)
-    public Dish get(@PathVariable Long restaurantId, @PathVariable Long id) {
-        log.info("get {} from restaurant {}", id, restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        return getDishIfExists(restaurant, id);
+    public DishTo get(@PathVariable Long restaurantId, @PathVariable Long id) {
+        log.info("Get dish {} from restaurant {}", id, restaurantId);
+        return dishService.getFromRestaurant(restaurantId, id).getRestaurantItem();
     }
 
     @PostMapping
-    @JsonView(Admin.class)
-    public Dish addNewToRestaurant(@PathVariable Long restaurantId, @RequestBody @Valid NewDishTo newDish) {
-        log.info("add new {} to restaurant {}", newDish, restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        return dishService.add(restaurant, newDish);
+    public DishTo addNewToRestaurant(@PathVariable Long restaurantId, @RequestBody @Valid DishTo newDish,
+                                     @AuthenticationPrincipal AuthToken admin) {
+        String name = newDish.getName();
+        int price = newDish.getPrice();
+        log.info("Add new dish [name = '{}', price = '{}'] to restaurant {} (by admin {})", name, price, restaurantId, admin);
+        return dishService.add(restaurantId, name, price);
     }
 
     @PutMapping("/{id}")
-    public void update(@PathVariable Long restaurantId, @PathVariable Long id, @RequestBody NewDishTo simpleDishTo) {
-        log.info("update {} for {} in restaurant {}", id, simpleDishTo, restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        dishService.update(restaurant, getDishIfExists(restaurant, id), simpleDishTo);
+    public void update(@PathVariable Long restaurantId, @PathVariable Long id,
+                       @RequestBody DishTo updatedDish, @AuthenticationPrincipal AuthToken admin) {
+        String name = updatedDish.getName();
+        int price = updatedDish.getPrice();
+        log.info("Update dish {} to [name = '{}', price ='{}'] in restaurant {} (by admin {})", id, name, price, restaurantId, admin);
+        dishService.update(restaurantId, id, name, price);
     }
 
     @PatchMapping("/{id}")
-    public void enabled(@PathVariable Long restaurantId, @PathVariable Long id, @RequestParam boolean enabled) {
-        log.info(enabled ? "enable {} in restaurant {}" : "disable {} in restaurant {}", id, restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        dishService.enable(restaurant, getDishIfExists(restaurant, id), enabled);
+    public void enabled(@PathVariable Long restaurantId, @PathVariable Long id,
+                        @RequestParam boolean enabled, @AuthenticationPrincipal AuthToken admin) {
+        log.info(enabled ? "Enable dish {} in restaurant {} (by admin {})" :
+                "Disable dish {} in restaurant {} (by admin {})", id, restaurantId, admin);
+        dishService.enable(restaurantId, id, enabled);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public void delete(@PathVariable Long restaurantId, @PathVariable Long id) {
-        log.info("delete dish {} from restaurant {}", id, restaurantId);
-        Restaurant restaurant = getRestaurantIfExists(restaurantId);
-        dishService.delete(restaurant, getDishIfExists(restaurant, id));
+    public void delete(@PathVariable Long restaurantId, @PathVariable Long id,
+                       @AuthenticationPrincipal AuthToken admin) {
+        log.info("Delete dish {} from restaurant {} (by admin {})", id, restaurantId, admin);
+        dishService.softDelete(restaurantId, id);
+    }
+
+    // Only SUPER_ADMIN has access
+    @DeleteMapping("/{id}/hard-delete")
+    public void hardDelete(@PathVariable Long restaurantId, @PathVariable Long id,
+                           @AuthenticationPrincipal AuthToken admin) {
+        log.info("Hard delete dish {} from restaurant {} (by admin {})", id, restaurantId, admin);
+        dishService.hardDelete(restaurantId, id);
     }
 
 }

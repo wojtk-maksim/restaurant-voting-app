@@ -6,17 +6,17 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.javaops.restaurantvoting.util.Views.Public;
+import ru.javaops.restaurantvoting.Views.Public;
 
 @Entity
 @Table(
         name = "dish",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id", "name"}, name = "uk_restaurant_dish"
-        ))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"restaurant_id", "name"}, name = "uk_restaurant_dish_name")
+)
 @Getter
 @Setter
 @NoArgsConstructor
-public class Dish extends NamedDeletableEntity {
+public class Dish extends NamedEnablableDeletableEntity {
 
     @Column(name = "price", nullable = false)
     @JsonView(Public.class)

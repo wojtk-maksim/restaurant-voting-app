@@ -6,32 +6,32 @@ VALUES ('user', 'user@yandex.ru', '{noop}userPassword', 'USER', TRUE, FALSE),
        ('deleted', 'deleted@gmail.com', '{noop}deletedPassword', 'USER', TRUE, TRUE);
 
 INSERT INTO RESTAURANT (NAME, ENABLED, DELETED)
-VALUES ('Burger King', TRUE, FALSE),
-       ('KFC', TRUE, FALSE),
+VALUES ('Deleted Restaurant', TRUE, TRUE),
        ('Unavailable Restaurant', FALSE, FALSE),
-       ('Deleted Restaurant', TRUE, TRUE);
+       ('Burger King', TRUE, FALSE),
+       ('KFC', TRUE, FALSE);
 
 INSERT INTO DISH (PRICE, RESTAURANT_ID, NAME, ENABLED, DELETED)
-VALUES (150, 1, 'Burger', TRUE, FALSE),
-       (250, 1, 'Deleted Dish', TRUE, TRUE),
-       (200, 1, 'Cheeseburger', TRUE, FALSE),
-       (199, 1, 'Unavailable Dish', FALSE, FALSE),
-       (300, 2, 'Bucket', TRUE, FALSE),
-       (100, 2, 'Fries', TRUE, FALSE),
-       (200, 3, 'Dish from Unavailable', TRUE, FALSE),
-       (300, 4, 'Dish from Deleted', TRUE, FALSE);
+VALUES (150, 3, 'Burger', TRUE, FALSE),
+       (250, 3, 'Deleted Dish', TRUE, TRUE),
+       (200, 3, 'Cheeseburger', TRUE, FALSE),
+       (199, 3, 'Unavailable Dish', FALSE, FALSE),
+       (300, 4, 'Bucket', TRUE, FALSE),
+       (100, 4, 'Fries', TRUE, FALSE),
+       (200, 2, 'Dish from Unavailable', TRUE, FALSE),
+       (300, 1, 'Dish from Deleted', TRUE, FALSE);
 
 INSERT INTO LUNCH (DATE, RESTAURANT_ID, ENABLED)
-VALUES ('2020-09-01', 1, TRUE),
-       ('2020-09-01', 2, FALSE),
-       ('2020-09-01', 3, TRUE),
-       ('2020-09-01', 4, TRUE);
+VALUES ('2023-09-01', 3, TRUE),
+       ('2023-09-01', 4, FALSE),
+       ('2023-09-01', 2, TRUE),
+       ('2023-09-01', 1, TRUE);
 
-INSERT INTO LUNCH_ITEM (DISH_ID, LUNCH_ID)
+INSERT INTO LUNCH_ITEM (LUNCH_ID, DISH_ID)
 VALUES (1, 1),
-       (6, 2),
-       (7, 3),
-       (8, 4);
+       (2, 6),
+       (3, 7),
+       (4, 8);
 
 INSERT INTO VOTE (DATE, LUNCH_ID, USER_ID)
-VALUES ('2020-09-01', 1, 1);
+VALUES ('2023-09-01', 1, 1);

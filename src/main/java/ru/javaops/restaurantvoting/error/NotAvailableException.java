@@ -1,9 +1,14 @@
 package ru.javaops.restaurantvoting.error;
 
-public class NotAvailableException extends RuntimeException {
+public class NotAvailableException extends RuntimeException implements HasUri {
 
-    public NotAvailableException(String object) {
-        super(object + " not available");
+    public NotAvailableException(String msg) {
+        super(msg);
+    }
+
+    @Override
+    public String getProblemPath() {
+        return "/not-available";
     }
 
 }

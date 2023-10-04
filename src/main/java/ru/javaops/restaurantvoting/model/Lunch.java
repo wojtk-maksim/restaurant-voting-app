@@ -61,4 +61,13 @@ public class Lunch extends EnablableEntity {
         this(date, restaurant, dishes, true);
     }
 
+    public Lunch(LocalDate date, Restaurant restaurant) {
+        this(date, restaurant, null);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " on " + date;
+    }
+
 }

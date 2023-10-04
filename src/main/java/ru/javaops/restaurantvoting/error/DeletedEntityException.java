@@ -1,9 +1,14 @@
 package ru.javaops.restaurantvoting.error;
 
-public class DeletedEntityException extends RuntimeException {
+public class DeletedEntityException extends RuntimeException implements HasUri {
 
-    public DeletedEntityException(String object) {
-        super(object + " was deleted");
+    public DeletedEntityException(String msg) {
+        super(msg);
+    }
+
+    @Override
+    public String getProblemPath() {
+        return "/deleted";
     }
 
 }

@@ -1,9 +1,14 @@
 package ru.javaops.restaurantvoting.error;
 
-public class DeadLineException extends RuntimeException {
+public class DeadLineException extends RuntimeException implements HasUri {
 
-    public DeadLineException(String action) {
-        super("forbidden to " + action + " after deadline");
+    public DeadLineException(String msg) {
+        super(msg);
+    }
+
+    @Override
+    public String getProblemPath() {
+        return "/deleted";
     }
 
 }

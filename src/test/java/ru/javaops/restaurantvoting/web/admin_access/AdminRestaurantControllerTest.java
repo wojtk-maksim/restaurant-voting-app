@@ -1,87 +1,126 @@
 package ru.javaops.restaurantvoting.web.admin_access;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.javaops.restaurantvoting.model.Restaurant;
-import ru.javaops.restaurantvoting.repository.RestaurantRepository;
+import ru.javaops.restaurantvoting.TestData;
+import ru.javaops.restaurantvoting.error.NotFoundException;
 import ru.javaops.restaurantvoting.service.RestaurantService;
+import ru.javaops.restaurantvoting.util.JwtUtil;
 import ru.javaops.restaurantvoting.web.AbstractControllerTest;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.javaops.restaurantvoting.RestaurantTestData.*;
-import static ru.javaops.restaurantvoting.UserTestData.ADMIN_EMAIL;
+import static ru.javaops.restaurantvoting.TestData.*;
+import static ru.javaops.restaurantvoting.UserTestData.admin;
 import static ru.javaops.restaurantvoting.util.JsonUtil.writeValue;
 import static ru.javaops.restaurantvoting.web.admin_access.AdminRestaurantController.ADMIN_RESTAURANTS_URL;
 
 public class AdminRestaurantControllerTest extends AbstractControllerTest {
 
     @Autowired
-    RestaurantRepository restaurantRepository;
-
-    @Autowired
     private RestaurantService restaurantService;
 
-    @Autowired
-    private EntityManager em;
-
     @Test
-    @WithUserDetails(ADMIN_EMAIL)
     void getAll() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(ADMIN_RESTAURANTS_URL))
+        perform(MockMvcRequestBuilders.get(ADMIN_RESTAURANTS_URL)
+                .header("Authorization", "Bearer " + JwtUtil.generateToken(admin)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> assertTrue(result.getResponse().getContentAsString().contains("enabled")))
-                .andExpect(result -> RESTAURANT_MATCHER.matches(result, restaurants, Restaurant[].class));
+                .andExpect(result -> RESTAURANT_TO_MATCHER.matches(result, restaurants));
     }
 
     @Test
-    @WithUserDetails(ADMIN_EMAIL)
     void get() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID))
+        perform(MockMvcRequestBuilders
+                .get(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> RESTAURANT_MATCHER.matches(result, getBurgerKing(), Restaurant.class));
+                .andExpect(result -> RESTAURANT_TO_MATCHER.matches(result, BURGER_KING));
     }
 
     @Test
-    @WithUserDetails(ADMIN_EMAIL)
+    void getNotFound() throws Exception {
+        perform(MockMvcRequestBuilders
+                .get(ADMIN_RESTAURANTS_URL + "/" + NOT_FOUND)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void addNew() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(ADMIN_RESTAURANTS_URL)
-                        .contentType(APPLICATION_JSON)
-                        .content(writeValue(newRestaurant)))
+        perform(MockMvcRequestBuilders
+                .post(ADMIN_RESTAURANTS_URL)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT)
+                .contentType(APPLICATION_JSON)
+                .content(writeValue(NEW_RESTAURANT)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
-                .andExpect(result -> RESTAURANT_MATCHER.matches(result, savedRestaurant, Restaurant.class, "id"));
+                .andExpect(result -> RESTAURANT_TO_MATCHER.matches(result, SAVED_RESTAURANT, "id"));
     }
 
     @Test
-    @WithUserDetails(ADMIN_EMAIL)
+    void addNewNameExists() throws Exception {
+        perform(MockMvcRequestBuilders
+                .post(ADMIN_RESTAURANTS_URL)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT)
+                .contentType(APPLICATION_JSON)
+                .content(writeValue(BURGER_KING)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
     void update() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID)
-                        .contentType(APPLICATION_JSON)
-                        .content(writeValue(newRestaurant)))
+        perform(MockMvcRequestBuilders
+                .put(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT)
+                .contentType(APPLICATION_JSON)
+                .content(writeValue(NEW_RESTAURANT)))
                 .andDo(print())
                 .andExpect(status().isOk());
-        RESTAURANT_MATCHER.matches(restaurantService.get(BURGER_KING_ID), updatedRestaurant);
+        em.clear();
+        RESTAURANT_TO_MATCHER.matches(restaurantService.get(BURGER_KING_ID), UPDATED_RESTAURANT);
     }
 
     @Test
-    @WithUserDetails(ADMIN_EMAIL)
-    void delete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID))
+    void enable() throws Exception {
+        perform(MockMvcRequestBuilders
+                .patch(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT)
+                .param("enabled", "false"))
+                .andDo(print())
+                .andExpect(status().isOk());
+        assertFalse(restaurantService.get(BURGER_KING_ID).isEnabled());
+    }
+
+    @Test
+    void softDelete() throws Exception {
+        perform(MockMvcRequestBuilders
+                .delete(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID)
+                .header(TestData.AUTHORIZATION_HEADER, ADMIN_JWT))
                 .andDo(print())
                 .andExpect(status().isOk());
         assertTrue(restaurantService.get(BURGER_KING_ID).isDeleted());
+    }
+
+    @Test
+    void hardDelete() throws Exception {
+        perform(MockMvcRequestBuilders
+                .delete(ADMIN_RESTAURANTS_URL + "/" + BURGER_KING_ID + "/hard-delete")
+                .header(TestData.AUTHORIZATION_HEADER, SUPER_ADMIN_JWT))
+                .andDo(print())
+                .andExpect(status().isOk());
+        assertThrows(NotFoundException.class, () -> restaurantService.get(BURGER_KING_ID));
     }
 
 }
