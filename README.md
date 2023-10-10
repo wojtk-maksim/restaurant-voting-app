@@ -1,6 +1,5 @@
 Restaurant Voting App
 ===============================
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/16f8b2869e1044e7a8bfc1381c41f68f)](https://app.codacy.com/gh/wojtk-maksim/restaurant-voting-app/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ------------------------------- 
 Final project on TopJava internship!
 -------------------------------
